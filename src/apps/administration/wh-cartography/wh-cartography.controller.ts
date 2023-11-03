@@ -186,7 +186,6 @@ export class WhCartographyController {
   @Post('createwarehouse')
   async createWarehouse(@Body() warehouseDto: WarehouseCreateDto) {
     try {
-      console.log(warehouseDto);
       return await this.whcartographyService.createWarehouse(warehouseDto);
     } catch (e) {
       throw new HttpException(

@@ -15,15 +15,15 @@ export class SitegeographicCreateDto {
   readonly actif: boolean;
 
   @IsString()
-  refcompany: string;
+  readonly refcompany: string;
 
   @IsObject()
-  parametres: object;
+  readonly parametres: object;
 
   @IsOptional()
   @IsNumber()
   idheaderparametre: number;
 
   @IsString()
-  reftypeparametre: string;
+  readonly reftypeparametre: string;
 }

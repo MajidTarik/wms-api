@@ -17,6 +17,11 @@ import { UomConversionFindDto } from "./DTO/uom-conversion-find.dto";
 import { UomclassicconversionEntity } from "../../../entities/arazan-db/items/uomclassicconversion.entity";
 import { UomInterneConversionCreateDto } from "./DTO/uom-interne-conversion-create.dto";
 import { UomInterneConversionFindDto } from "./DTO/uom-interne-conversion-find.dto";
+import { ItemsSaveDto } from "./DTO/Items-save.dto";
+import { ParametresService } from "../parametres/parametres.service";
+import { VariantSaveDto } from "./DTO/Variant-save.dto";
+import { VariantsEntity } from "../../../entities/arazan-db/items/variants.entity";
+import { VariantsFindDto } from "./DTO/variants-find.dto";
 
 @Injectable({})
 export class ItemsService {
@@ -31,6 +36,9 @@ export class ItemsService {
     private readonly uomconversionRepository: Repository<UomconversionEntity>,
     @InjectRepository(UomclassicconversionEntity)
     private readonly uomclassicconversionRepository: Repository<UomclassicconversionEntity>,
+    @InjectRepository(VariantsEntity)
+    private readonly variantRepository: Repository<VariantsEntity>,
+    private parametreService: ParametresService,
   ) {}
 
   // --------------------------------- Unité
@@ -50,9 +58,11 @@ export class ItemsService {
     return await this.unitRepository
       .find({
         where: [
-          { refunit: Like(unitDto.refunit) },
-          { unit: Like(unitDto.unit) },
-          { refcompany: Like(unitDto.refcompany) },
+          {
+            refcompany: unitDto.refcompany,
+            refunit: unitDto?.refunit || undefined,
+            unit: unitDto?.unit || undefined,
+          },
         ],
         order: { refunit: 'ASC' },
         select: { refunit: true, unit: true, actif: true, refcompany: true, datetimecreation: true, datetimelastupdate: true },
@@ -88,12 +98,10 @@ export class ItemsService {
           unit: true,
         }
       });
-    console.log('---================>',units);
     return units;
   }
 
   async findUnitByCriteria(unitDto: UnitFindDto) {
-    console.log(unitDto);
     return await this.unitRepository
       .createQueryBuilder('unit')
       .innerJoinAndSelect(
@@ -102,11 +110,10 @@ export class ItemsService {
         'unit.refcompany = :refcompany',
         {refcompany: unitDto.refcompany}
       )
-      .andWhere('unit.refunit = COALESCE(:refunit, unit.refunit)', {refunit: unitDto.refunit})
-      .andWhere('unit.unit = COALESCE(:unit, unit.unit)', {unit: unitDto.unit})
+      .andWhere('unit.refunit = COALESCE(:refunit, unit.refunit)', {refunit: unitDto?.refunit || undefined})
+      .andWhere('unit.unit = COALESCE(:unit, unit.unit)', {unit: unitDto?.unit  || undefined})
       .getMany()
       .then(async (res) => {
-        console.log(res);
         return res;
       })
       .catch((err) => {
@@ -131,9 +138,11 @@ export class ItemsService {
     return await this.pricemodelRepository
       .find({
         where: [
-          { refpricemodel: Like(pricemodelDto.refpricemodel) },
-          { pricemodel: Like(pricemodelDto.pricemodel) },
-          { refcompany: Like(pricemodelDto.refcompany) },
+          {
+            refpricemodel: pricemodelDto?.refpricemodel || undefined,
+            pricemodel: pricemodelDto?.pricemodel || undefined,
+            refcompany: pricemodelDto.refcompany,
+          },
         ],
         order: { refpricemodel: 'ASC' },
         select: { refpricemodel: true, pricemodel: true, actif: true, refcompany: true },
@@ -158,12 +167,11 @@ export class ItemsService {
   }
 
   async findPriceModelByCriteria(pricemodelDto: PriceModelFindDto) {
-    console.log('---------------------------------------------');
     return await this.pricemodelRepository
       .find({
         where: [
           {
-            refcompany: Like(pricemodelDto.refcompany),
+            refcompany: pricemodelDto.refcompany,
           },
         ],
         order: { refpricemodel: 'ASC' },
@@ -182,15 +190,25 @@ export class ItemsService {
     return await this.itemRepository
       .find({
         where: [
-          { refitem: Like(itemfinddto.refitem) },
-          { item: Like(itemfinddto.item) },
-          { refcompany: Like(itemfinddto.refcompany) },
-          { searchname: Like(itemfinddto.searchname) },
-          { barcode: Like(itemfinddto.barcode) },
-          { itemdescription: Like(itemfinddto.itemdescription) },
+          {
+            refitem: itemfinddto?.refitem  || undefined,
+            refcompany: itemfinddto.refcompany,
+            item: itemfinddto?.item || undefined,
+            searchname: itemfinddto?.searchname || undefined,
+            barcode: itemfinddto?.barcode || undefined,
+            itemdescription: itemfinddto?.itemdescription || undefined,
+          },
         ],
+        relations: {
+          pricemodel: true,
+          headerparametre: true,
+          unitorder: true,
+          unitpurch: true,
+          unitsales: true,
+          unitinvent: true,
+          company: true,
+        },
         order: { refitem: 'ASC' },
-        select: { refitem: true, item: true, searchname: true, barcode: true, itemdescription: true },
       })
       .then(async (res) => {
         return res;
@@ -205,12 +223,12 @@ export class ItemsService {
       .find({
         where: [
           {
-            refitem: Like(itemfinddto.refitem),
-            item: Like(itemfinddto.item),
-            refcompany: Like(itemfinddto.refcompany),
-            searchname: Like(itemfinddto.searchname),
-            barcode: Like(itemfinddto.barcode),
-            itemdescription: Like(itemfinddto.itemdescription)
+            refitem: itemfinddto?.refitem || undefined,
+            item: itemfinddto?.item || undefined,
+            refcompany: itemfinddto.refcompany,
+            searchname: itemfinddto?.searchname || undefined,
+            barcode: itemfinddto?.barcode || undefined,
+            itemdescription: itemfinddto?.itemdescription || undefined,
           },
         ],
         order: { refitem: 'ASC' },
@@ -224,10 +242,23 @@ export class ItemsService {
       });
   }
 
+  async saveItem(itemdto: ItemsSaveDto) {
+    const idheaderparametre = await this.parametreService.checkaxesbycompany(itemdto.parametres, itemdto.refcompany, 'ANALYTIC');
+    itemdto['idheaderparametre'] = Number(idheaderparametre);
+    const item = await this.itemRepository.create(itemdto);
+    return await this.itemRepository
+      .save(item)
+      .then(async (res) => {
+        return await this.itemRepository.findOneBy(item);
+      })
+      .catch((err) => {
+        throw new BadRequestException(err.message, { cause: err, description: err.query,});
+      });
+  }
+
   // --------------------------------- UOM Conversion Management
   async createUomConversion(uomconversionDto: UomConversionCreateDto) {
     const uomconversion = await this.uomconversionRepository.create(uomconversionDto); // transform the DTO to the entity user
-    console.log(uomconversion);
     return await this.uomconversionRepository
       .save(uomconversion)
       .then(async (res) => {
@@ -255,11 +286,9 @@ export class ItemsService {
 
   async createUomInterneConversion(uomconversionDto: UomInterneConversionCreateDto) {
     const uomconversion = await this.uomclassicconversionRepository.create(uomconversionDto); // transform the DTO to the entity user
-    console.log('conversion interne',uomconversion);
     return await this.uomclassicconversionRepository
       .save(uomconversion)
       .then(async (res) => {
-        console.log(res);
         return await this.uomclassicconversionRepository.findOneBy(uomconversionDto);
       })
       .catch((err) => {
@@ -283,8 +312,8 @@ export class ItemsService {
       .find({
         where: {
           refcompany: uomconversionDto.refcompany,
-          refunitfrom: uomconversionDto.refunitfrom,
-          refunitto: uomconversionDto.refunitto,
+          refunitfrom: uomconversionDto?.refunitfrom || undefined,
+          refunitto: uomconversionDto?.refunitto || undefined,
         },
         relations: {
           company: true,
@@ -305,8 +334,50 @@ export class ItemsService {
         }
       })
       .then(async (res) => {
-        console.log('HOOOOOO',res[0]);
         return res[0];
+      })
+      .catch((err) => {
+        throw new BadRequestException(err.message, { cause: err, description: err.query,});
+      });
+  }
+  // -------------------------------------- Variant Logistique
+  async saveVariant(variantdto: VariantSaveDto) {
+    console.log('i am the DTO variant', variantdto);
+    const idheaderparametre = await this.parametreService.checkaxesbycompany(variantdto.parametres, variantdto.refcompany, 'ANALYTIC');
+    variantdto['idheaderparametre'] = Number(idheaderparametre);
+    const idheadervariant = await this.parametreService.checkaxesbycompany(variantdto.variants, variantdto.refcompany, 'VARIANTLOGISTC');
+    variantdto['idheadervariant'] = Number(idheadervariant);
+    const variant = await this.variantRepository.create(variantdto);
+    console.log('Hi this is me', variant);
+    return await this.variantRepository
+      .save(variant)
+      .then(async (res) => {
+        return await this.variantRepository.findOneBy(variant);
+      })
+      .catch((err) => {
+        throw new BadRequestException(err.message, { cause: err, description: err.query,});
+      });
+  }
+
+  async findVariant(variantfinddto: VariantsFindDto) {
+    console.log('------===========> Hiw hiw', variantfinddto);
+    return await this.variantRepository
+      .find({
+        where: [
+          {
+            refitem: variantfinddto?.refitem || undefined,
+            refvariant: variantfinddto?.refvariant || undefined,
+            refcompany: variantfinddto.refcompany,
+          },
+        ],
+        relations: ['company', 'item', 'headerparametre', 'headervariant', 'headervariant.parametreslines'],
+        order: { refitem: 'ASC' },
+        select: {},
+      })
+      .then(async (res) => {
+        //console.log('- - - ------------> Test');
+        //console.log(res);
+        return res;
       })
       .catch((err) => {
         throw new BadRequestException(err.message, { cause: err, description: err.query,});

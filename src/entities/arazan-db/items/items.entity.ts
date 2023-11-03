@@ -13,6 +13,7 @@ import { CompanyEntity } from '../cartography/company.entity';
 import { UnitsEntity } from "./units.entity";
 import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
 import { PricemodelEntity } from "./pricemodel.entity";
+import { VariantsEntity } from "./variants.entity";
 
 @Entity('items')
 export class ItemsEntity {
@@ -41,16 +42,16 @@ export class ItemsEntity {
   safetystock: number;
 
   @Column()
-  refunitinvent: number;
+  refunitinvent: string;
 
   @Column()
-  refunitsales: number;
+  refunitsales: string;
 
   @Column()
-  refunitpurch: number;
+  refunitpurch: string;
 
   @Column()
-  refunitorder: number;
+  refunitorder: string;
 
   @Column()
   itemdescription: string;
@@ -123,4 +124,12 @@ export class ItemsEntity {
   @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.idheaderparametre, { nullable: false })
   @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
   headerparametre: ParametresHeaderEntity;
+
+
+  @OneToMany(() => VariantsEntity, (variantsentity) => variantsentity.refitem)
+  @JoinColumn([
+    { name: 'refitem', referencedColumnName: 'refitem' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  variants: VariantsEntity[];
 }

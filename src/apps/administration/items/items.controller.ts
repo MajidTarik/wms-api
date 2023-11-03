@@ -11,6 +11,9 @@ import { UomConversionCreateDto } from "./DTO/uom-conversion-create.dto";
 import { UomConversionFindDto } from "./DTO/uom-conversion-find.dto";
 import { UomInterneConversionCreateDto } from "./DTO/uom-interne-conversion-create.dto";
 import { UomInterneConversionFindDto } from "./DTO/uom-interne-conversion-find.dto";
+import { ItemsSaveDto } from "./DTO/Items-save.dto";
+import { VariantSaveDto } from "./DTO/Variant-save.dto";
+import { VariantsFindDto } from "./DTO/variants-find.dto";
 
 @Controller('items')
 export class ItemsController {
@@ -57,7 +60,6 @@ export class ItemsController {
   @Post('findunitbycriteria')
   async findUnitByCriteria(@Body() unitDto: UnitFindDto) {
     try {
-      console.log(unitDto);
       return await this.itemService.findUnitByCriteria(unitDto);
     } catch (e) {
       throw new HttpException(
@@ -76,7 +78,6 @@ export class ItemsController {
   @Post('findactifunitbycriteria')
   async findactifunitbycriteria(@Body() unitDto: UnitFindDto) {
     try {
-      console.log(unitDto);
       return await this.itemService.findactifunitbycriteria(unitDto);
     } catch (e) {
       throw new HttpException(
@@ -220,10 +221,28 @@ export class ItemsController {
     }
   }
 
+  @Post('saveitem')
+  async saveItem(@Body() itemsDto: ItemsSaveDto) {
+    console.log(itemsDto);
+    try {
+      return await this.itemService.saveItem(itemsDto);
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: e.status,
+          error: e.response.error,
+        },
+        e.status,
+        {
+          cause: e,
+        },
+      );
+    }
+  }
+
   // --------------------------------- UOM Conversion Management
   @Post('createuominterneconversion')
   async createuominterneconversion(@Body() uomconversionDto: UomInterneConversionCreateDto) {
-    console.log('conversion interne ================>',uomconversionDto);
     try {
       return await this.itemService.createUomInterneConversion(uomconversionDto);
     } catch (e) {
@@ -239,6 +258,7 @@ export class ItemsController {
       );
     }
   }
+
   @Post('getuominterneconversion')
   async getUomInterneConversion(@Body() uomconversionDto: UomInterneConversionFindDto) {
     try {
@@ -277,7 +297,6 @@ export class ItemsController {
 
   @Post('createuomconversion')
   async createUomConversion(@Body() uomconversionDto: UomConversionCreateDto) {
-    console.log(uomconversionDto);
     try {
       return await this.itemService.createUomConversion(uomconversionDto);
     } catch (e) {
@@ -296,9 +315,46 @@ export class ItemsController {
 
   @Post('getuomcibycritaria')
   async getUomciByCritaria(@Body() uomconversionDto: UomInterneConversionFindDto) {
-    console.log(uomconversionDto);
     try {
       return await this.itemService.getuomcibycritaria(uomconversionDto);
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: e.status,
+          error: e.response.error,
+        },
+        e.status,
+        {
+          cause: e,
+        },
+      );
+    }
+  }
+
+  // --------------------------------- Variant Logistique
+  @Post('savevariant')
+  async saveVariant(@Body() variantDto: VariantSaveDto) {
+    try {
+      return await this.itemService.saveVariant(variantDto);
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: e.status,
+          error: e.response.error,
+        },
+        e.status,
+        {
+          cause: e,
+        },
+      );
+    }
+  }
+
+  @Post('findvariant')
+  async findVariant(@Body() variantDto: VariantsFindDto) {
+    try {
+      console.log(variantDto);
+      return await this.itemService.findVariant(variantDto);
     } catch (e) {
       throw new HttpException(
         {

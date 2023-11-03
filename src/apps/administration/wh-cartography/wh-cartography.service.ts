@@ -51,8 +51,8 @@ export class WhCartographyService {
       .find({
         where: [
           {
-            refcompany: Like(companyDto.refcompany),
-            company: Like(companyDto.company),
+            refcompany: companyDto?.refcompany || Like('%'),
+            company: companyDto?.company || undefined,
           },
         ],
         order: { refcompany: 'ASC' },
@@ -70,8 +70,10 @@ export class WhCartographyService {
     return await this.companyRepository
       .find({
         where: [
-          { refcompany: Like(companyDto.refcompany) },
-          { company: Like(companyDto.company) },
+          {
+            refcompany: companyDto?.refcompany || Like('%'),
+            company: companyDto?.company || undefined,
+          },
         ],
         order: { refcompany: 'ASC' },
         select: { refcompany: true, company: true, actif: true },
@@ -123,9 +125,10 @@ export class WhCartographyService {
       .find({
         where: [
           {
-            refsitegeographic: Like(sitegeographicDto.refsitegeographic),
-            sitegeographic: Like(sitegeographicDto.sitegeographic),
-            refcompany: Like(sitegeographicDto.refcompany) },
+            refsitegeographic: sitegeographicDto?.refsitegeographic || undefined,
+            sitegeographic: sitegeographicDto?.sitegeographic || undefined,
+            refcompany: sitegeographicDto.refcompany,
+          },
         ],
         order: { refsitegeographic: 'ASC' },
         select: { sitegeographic: true, refsitegeographic: true, actif: true, refcompany: true },
@@ -142,9 +145,11 @@ export class WhCartographyService {
     return await this.sitegeographicRepository
       .find({
         where: [
-          { refsitegeographic: Like(sitegeographicDto.refsitegeographic) },
-          { sitegeographic: Like(sitegeographicDto.sitegeographic) },
-          { refcompany: Like(sitegeographicDto.refcompany) },
+          {
+            refsitegeographic: sitegeographicDto?.refsitegeographic || undefined,
+            sitegeographic: sitegeographicDto?.sitegeographic || undefined,
+            refcompany: sitegeographicDto.refcompany,
+          },
         ],
         order: { refsitegeographic: 'ASC' },
         select: { sitegeographic: true, refsitegeographic: true, actif: true, refcompany: true },
@@ -189,9 +194,9 @@ export class WhCartographyService {
       .find({
         where: [
           {
-            refwarehouse: Like(warehouseDto.refwarehouse),
-            warehouse: Like(warehouseDto.warehouse),
-            refcompany: Like(warehouseDto.refcompany)
+            refwarehouse: warehouseDto?.refwarehouse || undefined,
+            warehouse: warehouseDto?.warehouse || undefined,
+            refcompany: warehouseDto.refcompany,
           },
         ],
         order: { refwarehouse: 'ASC' },
@@ -209,9 +214,11 @@ export class WhCartographyService {
     return await this.warehouseRepository
       .find({
         where: [
-          { refwarehouse: Like(warehouseDto.refwarehouse) },
-          { warehouse: Like(warehouseDto.warehouse) },
-          { refcompany: Like(warehouseDto.refcompany) },
+          {
+            refwarehouse: warehouseDto?.refwarehouse || undefined,
+            warehouse: warehouseDto?.warehouse || undefined,
+            refcompany: warehouseDto.refcompany,
+          },
         ],
         order: { refsitegeographic: 'ASC' },
         select: { refwarehouse: true, warehouse: true, actif: true, refcompany: true, refsitegeographic: true },
@@ -243,7 +250,7 @@ export class WhCartographyService {
       .findOne({
         where: {
             refcompany: warehouseDto.refcompany,
-            refwarehouse: warehouseDto.refwarehouse
+            refwarehouse: warehouseDto?.refwarehouse || undefined,
           },
         relations: {
           sitegeographic: true,
@@ -263,9 +270,9 @@ export class WhCartographyService {
       .find({
         where: [
           {
-            refarea: Like(areaDto.refarea),
-            area: Like(areaDto.area),
-            refcompany: Like(areaDto.refcompany),
+            refarea: areaDto?.refarea || undefined,
+            area: areaDto?.area || undefined,
+            refcompany: areaDto.refcompany,
           },
         ],
         order: { refarea: 'ASC' },
@@ -283,9 +290,11 @@ export class WhCartographyService {
     return await this.areaRepository
       .find({
         where: [
-          { refarea: Like(areaDto.refarea) },
-          { area: Like(areaDto.area) },
-          { refcompany: Like(areaDto.refcompany) },
+          {
+            refarea: areaDto?.refarea || undefined,
+            area: areaDto?.area || undefined,
+            refcompany: areaDto.refcompany,
+          },
         ],
         order: { refarea: 'ASC' },
         select: { refwarehouse: true, area: true, actif: true, refcompany: true, refarea: true },
@@ -313,7 +322,6 @@ export class WhCartographyService {
   }
 
   async showArea(areaDto: AreaShowDto) {
-    console.log(areaDto)
     return await this.areaRepository
       .findOne({
         where: { refcompany: areaDto.refcompany, refarea: areaDto.refarea },

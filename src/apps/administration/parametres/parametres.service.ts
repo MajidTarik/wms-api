@@ -94,7 +94,7 @@ export class ParametresService {
         'parametrestypes',
         'parametrestypes.reftypeparametre = COALESCE(:reftypeparameter, parametrestypes.reftypeparametre)',
         {
-          reftypeparameter: parametreDto.reftypeparametre,
+          reftypeparameter: parametreDto?.reftypeparametre || undefined,
         },
       )
       .leftJoinAndSelect(
@@ -102,7 +102,7 @@ export class ParametresService {
         'parametreslines',
         'parametreslines.idheaderparametre = :idheaderparametre',
         {
-          idheaderparametre: parametreDto.idheaderparametre,
+          idheaderparametre: parametreDto?.idheaderparametre || undefined,
         },
       )
       .getMany();
@@ -113,7 +113,7 @@ export class ParametresService {
       .createQueryBuilder('parametres')
       .innerJoinAndSelect('parametres.company', 'company')
       .innerJoinAndSelect('parametres.parametrestype', 'parametrestypes',)
-      .where('parametres.refparametre = :refparametre', {refparametre: parametreDto.refparametre,})
+      .where('parametres.refparametre = :refparametre', {refparametre: parametreDto?.refparametre || undefined,})
       .andWhere('parametres.refcompany = :refcompany', {refcompany: parametreDto.refcompany,})
       .getOne()
       .then((res) => {
@@ -138,25 +138,6 @@ export class ParametresService {
   }
   /** OK **/
   async findAttributParametre(attributparametreDto: ParametresAttributeFindDto) {
-    const constant = await this.attributparametreRepository
-      .createQueryBuilder('parametresattributs')
-      .innerJoinAndSelect(
-        'parametresattributs.parametre',
-        'parametre',
-        'parametre.refparametre = :refparametre',
-        {
-          refparametre: attributparametreDto.refparametre,
-        },
-      )
-      .innerJoinAndSelect(
-        'parametresattributs.company',
-        'company',
-        'company.refcompany = :refcompany',
-        {
-          refcompany: attributparametreDto.refcompany,
-        },
-      )
-      .getMany();
     return await this.attributparametreRepository
       .createQueryBuilder('parametresattributs')
       .innerJoinAndSelect(
@@ -164,7 +145,7 @@ export class ParametresService {
         'parametre',
         'parametre.refparametre = :refparametre',
         {
-          refparametre: attributparametreDto.refparametre,
+          refparametre: attributparametreDto?.refparametre || undefined,
         },
       )
       .innerJoinAndSelect(
@@ -225,9 +206,9 @@ export class ParametresService {
     return await this.findParametre({
         refcompany: refcompany,
         reftypeparametre: reftypeparametre,
-        parametre: null,
-        refparametre: null,
-        idheaderparametre: null,
+        parametre: undefined,
+        refparametre: undefined,
+        idheaderparametre: undefined,
       })
       .then(async (res) => {
         // -----------------------------------------------------------> Vérifier les parametres par type de parametre .
@@ -255,7 +236,7 @@ export class ParametresService {
         // -----------------------------------------------------------> Vérifier l'existance de header des axe analytique.
         let parametreheaderentity = await this.parametreheaderRepository.findOneBy({ refcompany: refcompany, refheaderparametre: refheaderparametre });
         if (!parametreheaderentity) {
-          parametreheaderentity = await this.parametreheaderRepository.create({ refcompany: refcompany, refheaderparametre: refheaderparametre })
+          parametreheaderentity = await this.parametreheaderRepository.create({ refcompany: refcompany, refheaderparametre: refheaderparametre, reftypeparametre: reftypeparametre })
           parametreheaderentity = await this.parametreheaderRepository.save( parametreheaderentity );
           // ---------------------------------------------------------------> Création de lignes des axes parametres.
           const parametrelines = Object.keys(parametreListe).map((key) => ({
