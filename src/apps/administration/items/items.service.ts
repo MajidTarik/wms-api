@@ -22,6 +22,9 @@ import { ParametresService } from "../parametres/parametres.service";
 import { VariantSaveDto } from "./DTO/Variant-save.dto";
 import { VariantsEntity } from "../../../entities/arazan-db/items/variants.entity";
 import { VariantsFindDto } from "./DTO/variants-find.dto";
+import { UomConversionVariantCreateDto } from "./DTO/uom-conversion-variant-create.dto";
+import { UomconversionvariantEntity } from "../../../entities/arazan-db/items/uomconversionvariant.entity";
+import { UomConversionVariantFindDto } from "./DTO/uom-conversion-variant-find.dto";
 
 @Injectable({})
 export class ItemsService {
@@ -34,6 +37,8 @@ export class ItemsService {
     private readonly pricemodelRepository: Repository<PricemodelEntity>,
     @InjectRepository(UomconversionEntity)
     private readonly uomconversionRepository: Repository<UomconversionEntity>,
+    @InjectRepository(UomconversionvariantEntity)
+    private readonly uomconversionvariantRepository: Repository<UomconversionvariantEntity>,
     @InjectRepository(UomclassicconversionEntity)
     private readonly uomclassicconversionRepository: Repository<UomclassicconversionEntity>,
     @InjectRepository(VariantsEntity)
@@ -83,41 +88,6 @@ export class ItemsService {
       })
       .catch((err) => {
         throw new BadRequestException(err.message, { cause: err, description: err.query });
-      });
-  }
-
-  async findactifunitbycriteria(unitDto: UnitFindDto) {
-    const units = await this.unitRepository
-      .find({
-        where: {
-          refcompany: unitDto.refcompany,
-          actif: true,
-        },
-        select: {
-          refunit: true,
-          unit: true,
-        }
-      });
-    return units;
-  }
-
-  async findUnitByCriteria(unitDto: UnitFindDto) {
-    return await this.unitRepository
-      .createQueryBuilder('unit')
-      .innerJoinAndSelect(
-        'unit.company',
-        'company',
-        'unit.refcompany = :refcompany',
-        {refcompany: unitDto.refcompany}
-      )
-      .andWhere('unit.refunit = COALESCE(:refunit, unit.refunit)', {refunit: unitDto?.refunit || undefined})
-      .andWhere('unit.unit = COALESCE(:unit, unit.unit)', {unit: unitDto?.unit  || undefined})
-      .getMany()
-      .then(async (res) => {
-        return res;
-      })
-      .catch((err) => {
-        throw new BadRequestException(err.message, { cause: err, description: err.query,});
       });
   }
 
@@ -190,14 +160,12 @@ export class ItemsService {
     return await this.itemRepository
       .find({
         where: [
-          {
-            refitem: itemfinddto?.refitem  || undefined,
-            refcompany: itemfinddto.refcompany,
-            item: itemfinddto?.item || undefined,
-            searchname: itemfinddto?.searchname || undefined,
-            barcode: itemfinddto?.barcode || undefined,
-            itemdescription: itemfinddto?.itemdescription || undefined,
-          },
+          {refitem: itemfinddto?.refitem  || undefined},
+          {refcompany: itemfinddto.refcompany},
+          {item: itemfinddto?.item || undefined},
+          {searchname: itemfinddto?.searchname || undefined},
+          {barcode: itemfinddto?.barcode || undefined},
+          {itemdescription: itemfinddto?.itemdescription || undefined},
         ],
         relations: {
           pricemodel: true,
@@ -256,6 +224,41 @@ export class ItemsService {
       });
   }
 
+  // --------------------------------- UOM Conversion Management VARIANT
+  async createUomConversionVariant(uomconversionvariantDto: UomConversionVariantCreateDto) {
+    const uomconversionvariant = await this.uomconversionvariantRepository.create(uomconversionvariantDto); // transform the DTO to the entity user
+    return await this.uomconversionvariantRepository
+      .save(uomconversionvariant)
+      .then(async (res) => {
+        return await this.uomconversionvariantRepository.findOneBy(uomconversionvariantDto);
+      })
+      .catch((err) => {
+        throw new BadRequestException(err.message, { cause: err, description: err.query,});
+      });
+  }
+
+  async lookForUomconversionVariant(uomconversionvariantfinddto: UomConversionVariantFindDto) {
+    return await this.uomconversionvariantRepository
+      .find({
+        where: {
+          refcompany: uomconversionvariantfinddto.refcompany,
+          id: uomconversionvariantfinddto?.id || undefined,
+        },
+        relations: {
+          company: true,
+          unitfrom: true,
+          unitto: true,
+          variant: true
+        },
+      })
+      .then(async (res) => {
+        return res;
+      })
+      .catch((err) => {
+        throw new BadRequestException(err.message, { cause: err, description: err.query,});
+      });
+  }
+
   // --------------------------------- UOM Conversion Management
   async createUomConversion(uomconversionDto: UomConversionCreateDto) {
     const uomconversion = await this.uomconversionRepository.create(uomconversionDto); // transform the DTO to the entity user
@@ -296,17 +299,6 @@ export class ItemsService {
       });
   }
 
-  async getUomInterneConversion(uomconversionDto: UomInterneConversionFindDto) {
-    return await this.uomclassicconversionRepository
-      .findBy(uomconversionDto)
-      .then(async (res) => {
-        return res;
-      })
-      .catch((err) => {
-        throw new BadRequestException(err.message, { cause: err, description: err.query,});
-      });
-  }
-
   async getuomcibycritaria(uomconversionDto: UomInterneConversionFindDto){
     return await this.uomclassicconversionRepository
       .find({
@@ -320,21 +312,9 @@ export class ItemsService {
           unitfrom: true,
           unitto: true,
         },
-        select: {
-          actif: true,
-          coefficient: true,
-          unitto: {
-            refunit: true,
-            unit: true,
-          },
-          unitfrom: {
-            refunit: true,
-            unit: true,
-          },
-        }
       })
       .then(async (res) => {
-        return res[0];
+        return res;
       })
       .catch((err) => {
         throw new BadRequestException(err.message, { cause: err, description: err.query,});

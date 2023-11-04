@@ -14,6 +14,8 @@ import { UomInterneConversionFindDto } from "./DTO/uom-interne-conversion-find.d
 import { ItemsSaveDto } from "./DTO/Items-save.dto";
 import { VariantSaveDto } from "./DTO/Variant-save.dto";
 import { VariantsFindDto } from "./DTO/variants-find.dto";
+import { UomConversionVariantCreateDto } from "./DTO/uom-conversion-variant-create.dto";
+import { UomConversionVariantFindDto } from "./DTO/uom-conversion-variant-find.dto";
 
 @Controller('items')
 export class ItemsController {
@@ -43,42 +45,6 @@ export class ItemsController {
   async lookForUnit(@Body() unitDto: UnitFindDto) {
     try {
       return await this.itemService.lookForUnit(unitDto);
-    } catch (e) {
-      throw new HttpException(
-        {
-          status: e.status,
-          error: e.response.error,
-        },
-        e.status,
-        {
-          cause: e,
-        },
-      );
-    }
-  }
-
-  @Post('findunitbycriteria')
-  async findUnitByCriteria(@Body() unitDto: UnitFindDto) {
-    try {
-      return await this.itemService.findUnitByCriteria(unitDto);
-    } catch (e) {
-      throw new HttpException(
-        {
-          status: e.status,
-          error: e.response.error,
-        },
-        e.status,
-        {
-          cause: e,
-        },
-      );
-    }
-  }
-
-  @Post('findactifunitbycriteria')
-  async findactifunitbycriteria(@Body() unitDto: UnitFindDto) {
-    try {
-      return await this.itemService.findactifunitbycriteria(unitDto);
     } catch (e) {
       throw new HttpException(
         {
@@ -259,15 +225,15 @@ export class ItemsController {
     }
   }
 
-  @Post('getuominterneconversion')
-  async getUomInterneConversion(@Body() uomconversionDto: UomInterneConversionFindDto) {
+  @Post('getuomcibycritaria')
+  async getUomciByCritaria(@Body() uomconversionDto: UomInterneConversionFindDto) {
     try {
-      return await this.itemService.getUomInterneConversion(uomconversionDto);
+      return await this.itemService.getuomcibycritaria(uomconversionDto);
     } catch (e) {
       throw new HttpException(
         {
           status: e.status,
-          error: e.response['error'],
+          error: e.response.error,
         },
         e.status,
         {
@@ -277,6 +243,7 @@ export class ItemsController {
     }
   }
 
+  // --------------------------------------------------- UOM I Conversiuon MANAGEMENT
   @Post('lookforuomconversion')
   async lookForUomConversion(@Body() uomconversionDto: UomConversionFindDto) {
     try {
@@ -313,15 +280,34 @@ export class ItemsController {
     }
   }
 
-  @Post('getuomcibycritaria')
-  async getUomciByCritaria(@Body() uomconversionDto: UomInterneConversionFindDto) {
+  // --------------------------------- UOM CONVERSION VARIANT
+  @Post('createuomconversionvariant')
+  async createUomConversionVariant(@Body() uomconversionDto: UomConversionVariantCreateDto) {
     try {
-      return await this.itemService.getuomcibycritaria(uomconversionDto);
+      return await this.itemService.createUomConversionVariant(uomconversionDto);
     } catch (e) {
       throw new HttpException(
         {
           status: e.status,
           error: e.response.error,
+        },
+        e.status,
+        {
+          cause: e,
+        },
+      );
+    }
+  }
+
+  @Post('lookforuomconversionvariant')
+  async lookForUomConversionVariant(@Body() uomconversionvariantDto: UomConversionVariantFindDto) {
+    try {
+      return await this.itemService.lookForUomconversionVariant(uomconversionvariantDto);
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: e.status,
+          error: e.response['error'],
         },
         e.status,
         {
