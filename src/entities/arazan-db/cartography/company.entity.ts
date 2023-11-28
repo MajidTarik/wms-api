@@ -16,6 +16,8 @@ import { UnitsEntity } from "../items/units.entity";
 import { ItemsEntity } from "../items/items.entity";
 import { UomconversionEntity } from "../items/uomconversion.entity";
 import { UserCompaniesEntity } from "../users/user-companies.entity";
+import { UomconversionvariantEntity } from "../items/uomconversionvariant.entity";
+import { CategoriesgroupEntity } from "../categories/categoriesgroup.entity";
 
 @Entity('company')
 export class CompanyEntity {
@@ -88,6 +90,10 @@ export class CompanyEntity {
   @JoinColumn({ name: 'refcompany' })
   uomconversions: UomconversionEntity[];
 
+  @OneToMany(() => UomconversionvariantEntity, (uomconversionvariantentity) => uomconversionvariantentity.company)
+  @JoinColumn({ name: 'refcompany' })
+  uomconversionsvariant: UomconversionvariantEntity[];
+
   @OneToMany(() => UserCompaniesEntity, (usercompaniesentity) => usercompaniesentity.company)
   @JoinColumn({ name: 'refcompany' })
   userscompanies: UserCompaniesEntity[];
@@ -95,4 +101,8 @@ export class CompanyEntity {
   @OneToMany(() => UserEntity, (userentity) => userentity.company)
   @JoinColumn({ name: 'refcompany' })
   users: UserEntity[];
+
+  @OneToMany(() => CategoriesgroupEntity, (categoriesgroupentity) => categoriesgroupentity.company)
+  @JoinColumn({ name: 'refcompany' })
+  categoriesgroups: CategoriesgroupEntity[];
 }

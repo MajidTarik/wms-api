@@ -10,6 +10,7 @@ import { UomclassicconversionEntity } from "../../../entities/arazan-db/items/uo
 import { ParametresModule } from "../parametres/parametres.module";
 import { VariantsEntity } from "../../../entities/arazan-db/items/variants.entity";
 import { UomconversionvariantEntity } from "../../../entities/arazan-db/items/uomconversionvariant.entity";
+import { CategoriesModule } from "../categories/categories.module";
 
 @Module({
   controllers: [
@@ -26,6 +27,7 @@ import { UomconversionvariantEntity } from "../../../entities/arazan-db/items/uo
       UomconversionvariantEntity,
     ]),
     ParametresModule,
+    CategoriesModule,
   ],
   providers: [ItemsService],
   exports: [],

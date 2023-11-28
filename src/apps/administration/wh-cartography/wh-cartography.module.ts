@@ -10,6 +10,8 @@ import { AreaEntity } from "../../../entities/arazan-db/cartography/area.entity"
 import { ItemsModule } from "../items/items.module";
 import { UserEntity } from "../../../entities/arazan-db/users/user.entity";
 import { UserCompaniesEntity } from "../../../entities/arazan-db/users/user-companies.entity";
+import { CategoriesModule } from "../categories/categories.module";
+import { CategoriesaffectationsEntity } from "../../../entities/arazan-db/categories/categoriesaffectations.entity";
 
 @Module({
   controllers: [WhCartographyController],
@@ -22,9 +24,11 @@ import { UserCompaniesEntity } from "../../../entities/arazan-db/users/user-comp
       AreaEntity,
       UserEntity,
       UserCompaniesEntity,
+      CategoriesaffectationsEntity,
     ]),
     ParametresModule,
     ItemsModule,
+    CategoriesModule,
   ],
 })
 export class WhCartographyModule {

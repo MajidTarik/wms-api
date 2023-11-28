@@ -25,6 +25,7 @@ import { VariantsFindDto } from "./DTO/variants-find.dto";
 import { UomConversionVariantCreateDto } from "./DTO/uom-conversion-variant-create.dto";
 import { UomconversionvariantEntity } from "../../../entities/arazan-db/items/uomconversionvariant.entity";
 import { UomConversionVariantFindDto } from "./DTO/uom-conversion-variant-find.dto";
+import { CategoriesService } from "../categories/categories.service";
 
 @Injectable({})
 export class ItemsService {
@@ -44,6 +45,7 @@ export class ItemsService {
     @InjectRepository(VariantsEntity)
     private readonly variantRepository: Repository<VariantsEntity>,
     private parametreService: ParametresService,
+    private categoriesService: CategoriesService,
   ) {}
 
   // --------------------------------- Unité
@@ -199,8 +201,16 @@ export class ItemsService {
             itemdescription: itemfinddto?.itemdescription || undefined,
           },
         ],
+        relations: {
+          pricemodel: true,
+          headerparametre: true,
+          unitorder: true,
+          unitpurch: true,
+          unitsales: true,
+          unitinvent: true,
+          company: true,
+        },
         order: { refitem: 'ASC' },
-        select: { refitem: true, item: true, searchname: true, barcode: true, itemdescription: true },
       })
       .then(async (res) => {
         return res;
@@ -217,7 +227,10 @@ export class ItemsService {
     return await this.itemRepository
       .save(item)
       .then(async (res) => {
-        return await this.itemRepository.findOneBy(item);
+        console.log(new Date());
+        console.log(itemdto.categories);
+        await this.categoriesService.affectationItemCategories(itemdto.categories, itemdto.refcompany, itemdto.refitem)
+        return res;
       })
       .catch((err) => {
         throw new BadRequestException(err.message, { cause: err, description: err.query,});
