@@ -12,6 +12,9 @@ import { UserEntity } from "../../../entities/arazan-db/users/user.entity";
 import { UserCompaniesEntity } from "../../../entities/arazan-db/users/user-companies.entity";
 import { CategoriesModule } from "../categories/categories.module";
 import { CategoriesaffectationsEntity } from "../../../entities/arazan-db/categories/categoriesaffectations.entity";
+import { FurnituretypeEntity } from "../../../entities/arazan-db/cartography/furnituretype.entity";
+import { AisleEntity } from "../../../entities/arazan-db/cartography/aisle.entity";
+import { LocationEntity } from "../../../entities/arazan-db/cartography/location.entity";
 
 @Module({
   controllers: [WhCartographyController],
@@ -25,6 +28,9 @@ import { CategoriesaffectationsEntity } from "../../../entities/arazan-db/catego
       UserEntity,
       UserCompaniesEntity,
       CategoriesaffectationsEntity,
+      FurnituretypeEntity,
+      AisleEntity,
+      LocationEntity,
     ]),
     ParametresModule,
     ItemsModule,

@@ -189,7 +189,6 @@ export class ItemsController {
 
   @Post('saveitem')
   async saveItem(@Body() itemsDto: ItemsSaveDto) {
-    console.log(itemsDto);
     try {
       return await this.itemService.saveItem(itemsDto);
     } catch (e) {
@@ -339,7 +338,6 @@ export class ItemsController {
   @Post('findvariant')
   async findVariant(@Body() variantDto: VariantsFindDto) {
     try {
-      console.log(variantDto);
       return await this.itemService.findVariant(variantDto);
     } catch (e) {
       throw new HttpException(

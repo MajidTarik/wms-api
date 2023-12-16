@@ -187,7 +187,6 @@ export class CategoriesService {
       categories[i]['actif'] = true;
       i++;
     }
-    console.log(categories);
 
     return await this.categoriesaffectationsRepository
         .save(categories)

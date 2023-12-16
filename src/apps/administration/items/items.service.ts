@@ -72,7 +72,6 @@ export class ItemsService {
           },
         ],
         order: { refunit: 'ASC' },
-        select: { refunit: true, unit: true, actif: true, refcompany: true, datetimecreation: true, datetimelastupdate: true },
       })
       .then(async (res) => {
         return res;
@@ -227,8 +226,6 @@ export class ItemsService {
     return await this.itemRepository
       .save(item)
       .then(async (res) => {
-        console.log(new Date());
-        console.log(itemdto.categories);
         await this.categoriesService.affectationItemCategories(itemdto.categories, itemdto.refcompany, itemdto.refitem)
         return res;
       })
@@ -335,17 +332,15 @@ export class ItemsService {
   }
   // -------------------------------------- Variant Logistique
   async saveVariant(variantdto: VariantSaveDto) {
-    console.log('i am the DTO variant', variantdto);
     const idheaderparametre = await this.parametreService.checkaxesbycompany(variantdto.parametres, variantdto.refcompany, 'ANALYTIC');
     variantdto['idheaderparametre'] = Number(idheaderparametre);
     const idheadervariant = await this.parametreService.checkaxesbycompany(variantdto.variants, variantdto.refcompany, 'VARIANTLOGISTC');
     variantdto['idheadervariant'] = Number(idheadervariant);
     const variant = await this.variantRepository.create(variantdto);
-    console.log('Hi this is me', variant);
     return await this.variantRepository
       .save(variant)
       .then(async (res) => {
-        return await this.variantRepository.findOneBy(variant);
+        return res;
       })
       .catch((err) => {
         throw new BadRequestException(err.message, { cause: err, description: err.query,});
@@ -353,7 +348,6 @@ export class ItemsService {
   }
 
   async findVariant(variantfinddto: VariantsFindDto) {
-    console.log('------===========> Hiw hiw', variantfinddto);
     return await this.variantRepository
       .find({
         where: [
@@ -368,8 +362,6 @@ export class ItemsService {
         select: {},
       })
       .then(async (res) => {
-        //console.log('- - - ------------> Test');
-        //console.log(res);
         return res;
       })
       .catch((err) => {

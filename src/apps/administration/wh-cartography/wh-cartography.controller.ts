@@ -13,6 +13,10 @@ import { WarehouseShowDto } from "./DTO/warehouse-show.dto";
 import { AreaCreateDto } from "./DTO/area-create.dto";
 import { AreaFindDto } from "./DTO/area-find.dto";
 import { AreaShowDto } from "./DTO/area-show.dto";
+import {AisleSaveDto} from "./DTO/aisle-save.dto";
+import {AisleFindDto} from "./DTO/aisle-find.dto";
+import {LocationFindDto} from "./DTO/location-find.dto";
+import {LocationSaveDto} from "./DTO/location-save.dto";
 
 @Controller('wh-cartography')
 export class WhCartographyController {
@@ -114,24 +118,6 @@ export class WhCartographyController {
   async createSitegeographic(@Body() sitegeographicDto: SitegeographicCreateDto) {
     try {
       return await this.whcartographyService.createSitegeographic(sitegeographicDto);
-    } catch (e) {
-      throw new HttpException(
-        {
-          status: e.status,
-          error: e.response.error,
-        },
-        e.status,
-        {
-          cause: e,
-        },
-      );
-    }
-  }
-
-  @Post('lookforsitegeographic')
-  async lookForSitegeographic(@Body() sitegeographicDto: SitegeographicFindDto) {
-    try {
-      return await this.whcartographyService.lookForSitegeographic(sitegeographicDto);
     } catch (e) {
       throw new HttpException(
         {
@@ -328,4 +314,94 @@ export class WhCartographyController {
     }
   }
 
+  //-----------------------------------------------AISLE MANAGEMENT ------------------------------------------//
+  @Post('findaisle')
+  async findAisle(@Body() aisleDto: AisleFindDto) {
+    try {
+      return await this.whcartographyService.findAisle(aisleDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('saveaisle')
+  async saveAisle(@Body() aisleDto: AisleSaveDto) {
+    try {
+      return await this.whcartographyService.saveAisle(aisleDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Get('findfournituretype')
+  async findFournitureType() {
+    try {
+      return await this.whcartographyService.findFournitureType();
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('getlocationsbyaisle')
+  async getLocationsByAisle(@Body() location: LocationFindDto) {
+    try {
+      return await this.whcartographyService.getLocationsByAisle(location);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('savelocation')
+  async saveLocation(@Body() location: LocationSaveDto) {
+    try {
+      return await this.whcartographyService.saveLocation(location);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
 }

@@ -123,7 +123,6 @@ export class CategoriesController {
   @Post('findcategoriesbyentity')
   async findCategoriesByEntity(@Body() categoriesAffectation: CategoriesAffectationDto) {
     try {
-      console.log(categoriesAffectation)
       return await this.categoriesService.findCategoriesByEntity(categoriesAffectation);
     } catch (e) {
       throw new HttpException(

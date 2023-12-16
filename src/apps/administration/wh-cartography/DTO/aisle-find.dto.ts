@@ -1,12 +1,9 @@
 import { IsOptional, IsString } from 'class-validator';
-export class AreaFindDto {
+export class AisleFindDto {
   @IsString()
   @IsOptional()
-  readonly refarea: string;
+  readonly refaisle: string;
 
-  @IsString()
-  @IsOptional()
-  readonly area: string;
 
   @IsString()
   readonly refcompany: string;
