@@ -25,6 +25,9 @@ export class SitegeographyEntity {
   @Column()
   sitegeographic: string;
 
+  @Column({nullable: true})
+  deliveryadresse: string;
+
   @Column()
   actif: boolean;
 

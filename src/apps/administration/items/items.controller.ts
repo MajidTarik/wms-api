@@ -16,6 +16,8 @@ import { VariantSaveDto } from "./DTO/Variant-save.dto";
 import { VariantsFindDto } from "./DTO/variants-find.dto";
 import { UomConversionVariantCreateDto } from "./DTO/uom-conversion-variant-create.dto";
 import { UomConversionVariantFindDto } from "./DTO/uom-conversion-variant-find.dto";
+import {ItemsclassSaveDto} from "./DTO/Itemsclass-save.dto";
+import {ItemsclassFindDto} from "./DTO/Itemsclass-find.dto";
 
 @Controller('items')
 export class ItemsController {
@@ -349,6 +351,61 @@ export class ItemsController {
         {
           cause: e,
         },
+      );
+    }
+  }
+
+  //------------------------------- Item Class
+  @Post('saveitemclass')
+  async saveItemClass(@Body() itemclassDto: ItemsclassSaveDto) {
+    try {
+      return await this.itemService.saveItemClass(itemclassDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('getitemclass')
+  async getItemClass(@Body() itemclassDto: ItemsclassFindDto) {
+    try {
+      return await this.itemService.getItemClass(itemclassDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Get('getitemtracking')
+  async getItemTracking() {
+    try {
+      return await this.itemService.getItemTracking();
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
       );
     }
   }

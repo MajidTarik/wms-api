@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as process from 'process';
 import { WhCartographyModule } from './apps/administration/wh-cartography/wh-cartography.module';
 import { ParametresModule } from './apps/administration/parametres/parametres.module';
+import { MasterdataModule } from './apps/administration/masterdata/masterdata.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ParametresModule } from './apps/administration/parametres/parametres.mo
       synchronize: process.env.synchronize === 'true' ? true : false,
       logging: true,
     }),
+    MasterdataModule,
   ],
   controllers: [AppController],
   providers: [AppService],

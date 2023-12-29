@@ -11,6 +11,8 @@ import { ParametresModule } from "../parametres/parametres.module";
 import { VariantsEntity } from "../../../entities/arazan-db/items/variants.entity";
 import { UomconversionvariantEntity } from "../../../entities/arazan-db/items/uomconversionvariant.entity";
 import { CategoriesModule } from "../categories/categories.module";
+import {ItemtrackingEntity} from "../../../entities/arazan-db/items/itemtracking.entity";
+import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entity";
 
 @Module({
   controllers: [
@@ -25,6 +27,8 @@ import { CategoriesModule } from "../categories/categories.module";
       PricemodelEntity,
       VariantsEntity,
       UomconversionvariantEntity,
+      ItemtrackingEntity,
+      ItemclassEntity
     ]),
     ParametresModule,
     CategoriesModule,

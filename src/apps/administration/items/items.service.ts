@@ -26,6 +26,10 @@ import { UomConversionVariantCreateDto } from "./DTO/uom-conversion-variant-crea
 import { UomconversionvariantEntity } from "../../../entities/arazan-db/items/uomconversionvariant.entity";
 import { UomConversionVariantFindDto } from "./DTO/uom-conversion-variant-find.dto";
 import { CategoriesService } from "../categories/categories.service";
+import {ItemsclassSaveDto} from "./DTO/Itemsclass-save.dto";
+import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entity";
+import {ItemsclassFindDto} from "./DTO/Itemsclass-find.dto";
+import {ItemtrackingEntity} from "../../../entities/arazan-db/items/itemtracking.entity";
 
 @Injectable({})
 export class ItemsService {
@@ -44,6 +48,10 @@ export class ItemsService {
     private readonly uomclassicconversionRepository: Repository<UomclassicconversionEntity>,
     @InjectRepository(VariantsEntity)
     private readonly variantRepository: Repository<VariantsEntity>,
+    @InjectRepository(ItemclassEntity)
+    private readonly itemclassRepository: Repository<ItemclassEntity>,
+    @InjectRepository(ItemtrackingEntity)
+    private readonly itemtrackingRepository: Repository<ItemtrackingEntity>,
     private parametreService: ParametresService,
     private categoriesService: CategoriesService,
   ) {}
@@ -208,6 +216,7 @@ export class ItemsService {
           unitsales: true,
           unitinvent: true,
           company: true,
+          itemtracking: true,
         },
         order: { refitem: 'ASC' },
       })
@@ -368,4 +377,87 @@ export class ItemsService {
         throw new BadRequestException(err.message, { cause: err, description: err.query,});
       });
   }
+
+  //---------------------------------------------> Item Class
+  async saveItemClass(itemclassDto: ItemsclassSaveDto) {
+    const countVar = await this.itemHaveVariant( itemclassDto.refitem, itemclassDto.refcompany );
+    console.log(countVar, itemclassDto);
+    if ( countVar > 0 && ['', null, undefined].includes(itemclassDto.refvariant) ){
+      throw new BadRequestException('Merci de spécifier la variant', { cause: 'Merci de spécifier la variant', description: 'Merci de spécifier la variant',});
+    } else {
+      let existingItemClass = await this.itemclassRepository.findOneBy({refcompany: itemclassDto.refcompany, refwarehouse: itemclassDto.refwarehouse, refvariant: itemclassDto.refvariant, refitem: itemclassDto.refitem})
+      if (existingItemClass) {
+        existingItemClass['class'] = itemclassDto.class;
+        existingItemClass['actif'] = itemclassDto.actif;
+      } else {
+        existingItemClass = new ItemclassEntity();
+        existingItemClass['refitem'] = itemclassDto.refitem;
+        existingItemClass['refwarehouse'] = itemclassDto.refwarehouse;
+        existingItemClass['refcompany'] = itemclassDto.refcompany;
+        existingItemClass['refvariant'] = itemclassDto.refvariant;
+        existingItemClass['actif'] = itemclassDto.actif;
+        existingItemClass['class'] = itemclassDto.class;
+      }
+      const itemclass = await this.itemclassRepository.create(existingItemClass);
+      return await this.itemclassRepository
+          .save(itemclass)
+          .then(async (res) => {
+            return res;
+          })
+          .catch((err) => {
+            throw new BadRequestException(err.message, { cause: err, description: err.query,});
+          });
+    }
+  }
+
+  async itemHaveVariant(refitem: string, refcompany: string) {
+    return await this.variantRepository
+        .countBy({
+          refitem: refitem,
+          refcompany: refcompany,
+        })
+        .then(async (res) => {
+          console.log('count variant number',res)
+          return res;
+        })
+        .catch((err) => {
+          throw new BadRequestException(err.message, { cause: err, description: err.query,});
+        });
+  }
+
+  async getItemClass(itemclassDto: ItemsclassFindDto) {
+    const query = await this.itemclassRepository.createQueryBuilder('itemclass')
+        .innerJoinAndSelect('itemclass.item', 'items')
+        .innerJoinAndSelect('itemclass.warehouse', 'warehouse')
+        .leftJoinAndSelect('itemclass.variant', 'variants')
+        .where('itemclass.refcompany = :refcompany', { refcompany: itemclassDto.refcompany })
+        .andWhere('itemclass.refitem = :refitem', { refitem: itemclassDto.refitem })
+
+    if (!['', undefined, null].includes(itemclassDto.refwarehouse)) {
+      query.andWhere('itemclass.refwarehouse = :refwarehouse', { refwarehouse: itemclassDto.refwarehouse });
+    }
+    if (!['', undefined, null].includes(itemclassDto.refvariant)) {
+      query.andWhere('itemclass.refvariant = :refvariant', { refvariant: itemclassDto.refvariant })
+    }
+
+    return query.getMany()
+        .then(async (res) => {
+          return res;
+        })
+        .catch((err) => {
+          throw new BadRequestException(err.message, { cause: err, description: err.query,});
+        });
+  }
+
+  async getItemTracking() {
+    return await this.itemtrackingRepository
+        .find()
+        .then(async (res) => {
+          return res;
+        })
+        .catch((err) => {
+          throw new BadRequestException(err.message, { cause: err, description: err.query,});
+        });
+  }
+
 }

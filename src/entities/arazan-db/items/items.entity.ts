@@ -14,6 +14,7 @@ import { UnitsEntity } from "./units.entity";
 import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
 import { PricemodelEntity } from "./pricemodel.entity";
 import { VariantsEntity } from "./variants.entity";
+import {ItemtrackingEntity} from "./itemtracking.entity";
 
 @Entity('items')
 export class ItemsEntity {
@@ -62,8 +63,20 @@ export class ItemsEntity {
   @Column({ default: 0 })
   expirationdate: number;
 
+  @Column({ default: 0 })
+  bestbeforetime: number;
+
+  @Column({ default: 0 })
+  removaltime: number;
+
+  @Column({ default: 0 })
+  alerttime: number;
+
   @Column()
   refpricemodel: string;
+
+  @Column({nullable: true})
+  refitemtracking: string;
 
   @Column()
   idheaderparametre: number;
@@ -120,6 +133,12 @@ export class ItemsEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   pricemodel: PricemodelEntity;
+
+  @ManyToOne(() => ItemtrackingEntity, (itemtrackingentity) => itemtrackingentity.refitemtracking, {nullable: true})
+  @JoinColumn([
+    { name: 'refitemtracking', referencedColumnName: 'refitemtracking' }
+  ])
+  itemtracking: ItemtrackingEntity;
 
   @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.idheaderparametre, { nullable: false })
   @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
