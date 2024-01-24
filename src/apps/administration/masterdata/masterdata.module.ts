@@ -13,6 +13,7 @@ import {VendorEntity} from "../../../entities/arazan-db/masterdata/vendor.entity
 import {VendorgroupEntity} from "../../../entities/arazan-db/masterdata/vendorgroup.entity";
 import {VendortypeEntity} from "../../../entities/arazan-db/masterdata/vendortype.entity";
 import { MasterdataService } from './masterdata.service';
+import {ControlobjectEntity} from "../../../entities/arazan-db/masterdata/controlobject.entity";
 
 @Module({
   controllers: [
@@ -28,6 +29,7 @@ import { MasterdataService } from './masterdata.service';
       VendorEntity,
       VendorgroupEntity,
       VendortypeEntity,
+      ControlobjectEntity,
     ]),
     ParametresModule,
     CategoriesModule,
@@ -35,6 +37,6 @@ import { MasterdataService } from './masterdata.service';
   providers: [
       MasterdataService
   ],
-  exports: [],
+  exports: [MasterdataService],
 })
 export class MasterdataModule {}

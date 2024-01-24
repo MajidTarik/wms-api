@@ -12,6 +12,7 @@ import { UserEntity } from '../users/user.entity';
 import { CompanyEntity } from '../cartography/company.entity';
 import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
 import { ItemsEntity } from "./items.entity";
+import {PurchaserequisitionLinesEntity} from "../inventory/purchaserequisition-lines.entity";
 
 @Entity('variants')
 @Unique(['refcompany', 'refitem', 'idheadervariant'])
@@ -61,14 +62,6 @@ export class VariantsEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
   @JoinColumn({ name: 'refcompany' })
   company: CompanyEntity;
@@ -87,4 +80,11 @@ export class VariantsEntity {
   @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.idheaderparametre, { nullable: false })
   @JoinColumn([{ name: 'idheadervariant', referencedColumnName: 'idheaderparametre' }])
   headervariant: ParametresHeaderEntity;
+
+  @OneToMany(() => PurchaserequisitionLinesEntity, (purchaserequisitionlinesEntity) => purchaserequisitionlinesEntity.variant)
+  @JoinColumn([
+    { name: 'refvariant', referencedColumnName: 'refvariant' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  purchaserequisitionlines: PurchaserequisitionLinesEntity[];
 }

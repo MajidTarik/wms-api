@@ -25,12 +25,6 @@ export class ParametresLineEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity)
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.parametreslines, {nullable: false})
   @JoinColumn([
     { name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' },

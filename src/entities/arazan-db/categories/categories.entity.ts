@@ -6,14 +6,12 @@ import {
   ManyToOne, OneToMany,
   OneToOne,
   PrimaryColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from "typeorm";
-import { UserEntity } from '../users/user.entity';
 import { CompanyEntity } from '../cartography/company.entity';
 import { CategoriesgroupEntity } from "./categoriesgroup.entity";
-import { CategoriesAffectationDto } from "../../../apps/administration/categories/DTO/categories-Affectation.dto";
 import { CategoriesaffectationsEntity } from "./categoriesaffectations.entity";
-import { JoinTable } from "typeorm/browser";
+import {PurchaserequisitionLinesEntity} from "../inventory/purchaserequisition-lines.entity";
 
 @Entity('categories')
 export class CategoriesEntity {
@@ -49,14 +47,6 @@ export class CategoriesEntity {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
 
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
   @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])

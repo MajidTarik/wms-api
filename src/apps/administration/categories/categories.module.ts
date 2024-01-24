@@ -5,7 +5,6 @@ import { CategoriesService } from './categories.service';
 import { ParametresModule } from "../parametres/parametres.module";
 import { CategoriesgroupEntity } from "../../../entities/arazan-db/categories/categoriesgroup.entity";
 import { CategoriesEntity } from "../../../entities/arazan-db/categories/categories.entity";
-import { CategoriestypeEntity } from "../../../entities/arazan-db/categories/categoriestype.entity";
 import {CategoriesaffectationsEntity} from "../../../entities/arazan-db/categories/categoriesaffectations.entity";
 
 @Module({
@@ -16,7 +15,6 @@ import {CategoriesaffectationsEntity} from "../../../entities/arazan-db/categori
     TypeOrmModule.forFeature([
       CategoriesgroupEntity,
       CategoriesEntity,
-      CategoriestypeEntity,
       CategoriesaffectationsEntity,
     ]),
     ParametresModule,

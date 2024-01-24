@@ -21,6 +21,9 @@ import {VendorgroupEntity} from "../../../entities/arazan-db/masterdata/vendorgr
 import {VendortypeFindDto} from "./DTO/vendortype-find.dto";
 import {VendortypeEntity} from "../../../entities/arazan-db/masterdata/vendortype.entity";
 import {ParametresService} from "../parametres/parametres.service";
+import {ControlobjectEntity} from "../../../entities/arazan-db/masterdata/controlobject.entity";
+import {ControlobjectFindDto} from "./DTO/controlobject-find.dto";
+import {of} from "rxjs";
 
 @Injectable()
 export class MasterdataService {
@@ -50,13 +53,15 @@ export class MasterdataService {
         @InjectRepository(VendortypeEntity)
         private readonly vendortypeRepository: Repository<VendortypeEntity>,
 
+        @InjectRepository(ControlobjectEntity)
+        private readonly controlObjectRepository: Repository<ControlobjectEntity>,
+
         private parametreService: ParametresService,
 
     ){}
 
     // ____________________________________________________ VENDOR MANAGEMENT --------------------------------
     async getVendor(vendorDto: VendorFindDto) {
-
         const vendorquery = await this.vendorRepository
             .createQueryBuilder('vendor')
             .leftJoinAndSelect(
@@ -110,11 +115,9 @@ export class MasterdataService {
         const idheaderparametre = await this.parametreService.checkaxesbycompany( vendorDto.parametres, vendorDto.refcompany, 'ANALYTIC' )
         vendorDto['idheaderparametre'] = Number(idheaderparametre);
         const vendor = await this.vendorRepository.create(vendorDto)
-        console.log(vendor);
         return await this.vendorRepository
             .save(vendor)
             .then(async (res) => {
-                console.log(res);
                 return res;
             })
             .catch((err) => {
@@ -123,6 +126,26 @@ export class MasterdataService {
     }
 
     // ____________________________________________________ MADTERDATA MANAGEMENT --------------------------------
+
+    async findControlobject(controlobjectDto: ControlobjectFindDto) {
+        if (!controlobjectDto) {
+            throw new BadRequestException('Merci d envoyer au moins un critére', {});
+        }
+        return await this.controlObjectRepository
+            .find({
+                where: [{
+                        okforworkflows: controlobjectDto?.okforworkflows,
+                        okforgroupcategories: controlobjectDto?.okforgroupcategories,
+                }],
+                order: { refcontrolobject: 'ASC' },
+            })
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
     async getCurrency(currencyDto: CurrencyFindDto) {
         return await this.currrencyRepository
             .find({
@@ -247,6 +270,23 @@ export class MasterdataService {
             .then(async (res) => {
                 console.log('----------------->',res)
                 return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+
+    async generatepk(prefix) {
+        return await this.controlObjectRepository
+            .find({
+                where: [{
+                    prefix: prefix,
+                }]
+            })
+            .then(async (res) => {
+                res[0].currentindex = res[0].currentindex + 1;
+                await this.controlObjectRepository.save(res[0])
+                return prefix+(res[0].currentindex);
             })
             .catch((err) => {
                 throw new BadRequestException(err.message, { cause: err, description: err.query,});

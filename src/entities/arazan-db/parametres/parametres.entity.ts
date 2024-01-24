@@ -39,14 +39,6 @@ export class ParametresEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.parametres, {nullable: false})
   @JoinColumn({ name: 'refcompany' })
   company: CompanyEntity;

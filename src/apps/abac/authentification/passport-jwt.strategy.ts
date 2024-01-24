@@ -15,11 +15,10 @@ export class PassportJwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     return {
-      matricule: payload.matricule,
       lastname: payload.lastname,
       firstname: payload.firstname,
       email: payload.email,
-      id: payload.sub,
+      matricule: payload.sub,
       companiesusers: JSON.stringify(payload.companiesusers),
       refcompany: payload.refcompany,
     }

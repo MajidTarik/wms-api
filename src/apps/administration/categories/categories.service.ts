@@ -9,7 +9,6 @@ import { CategoriesFindDto } from "./DTO/categories-find.dto";
 import { CategoriesEntity } from "../../../entities/arazan-db/categories/categories.entity";
 import { lastValueFrom, from } from "rxjs";
 import { CategoriesSaveDto } from "./DTO/categories-save.dto";
-import { CategoriestypeEntity } from "../../../entities/arazan-db/categories/categoriestype.entity";
 import { CategoriesAffectationDto } from "./DTO/categories-Affectation.dto";
 import {ItemsSaveDto} from "../items/DTO/Items-save.dto";
 import {CategoriesaffectationsEntity} from "../../../entities/arazan-db/categories/categoriesaffectations.entity";
@@ -22,9 +21,6 @@ export class CategoriesService {
 
     @InjectRepository(CategoriesEntity)
     private readonly categoriesRepository: Repository<CategoriesEntity>,
-
-    @InjectRepository(CategoriestypeEntity)
-    private readonly categoriestypeRepository: Repository<CategoriestypeEntity>,
 
     @InjectRepository(CategoriesaffectationsEntity)
     private readonly categoriesaffectationsRepository: Repository<CategoriesaffectationsEntity>,
@@ -56,7 +52,7 @@ export class CategoriesService {
           },
         ],
         relations: {
-          categoriestype: true,
+          controlobject: true,
         },
         order: { refcategoriesgroup: 'ASC' },
       })
@@ -77,7 +73,6 @@ export class CategoriesService {
         refcategoriesgroup: categoriesFindDto.refcategoriesgroup
       }, // Fetch only the top-level categories
     });
-
     await this.buildCategoryTree(categories);
     return categories;
   }
@@ -147,30 +142,21 @@ export class CategoriesService {
       });
   }
 
-  async findCategoriestype() {
-    return await this.categoriestypeRepository
-      .find()
-      .then(async (res) => {
-        return res;
-      })
-      .catch((err) => {
-        throw new BadRequestException(err.message, { cause: err, description: err.query,});
-      });
-  }
-
   async findCategoriesByEntity(categoriesAffectation: CategoriesAffectationDto) {
     return await this.categoriesGroupRepository
       .createQueryBuilder('categoriesgroup')
-      .innerJoinAndSelect('categoriesgroup.categoriestype', 'categoriestype', 'categoriestype.refcategoriestype = :refcategoriestype', {refcategoriestype: categoriesAffectation.refcategoriestype})
+      .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.refcontrolobject = :refcontrolobject', {refcontrolobject: categoriesAffectation.refcontrolobject})
       .leftJoinAndSelect('categoriesgroup.categoriesgroupaffectation', 'categoriesaffectations', 'categoriesaffectations.refentity = :refentity and categoriesaffectations.entity = :entity', {refentity: categoriesAffectation.refentity, entity: categoriesAffectation.entity})
       .getMany()
       .then(async (res) => {
+        console.log('==================>',res);
         let i = 0;
         for await (const grcategories of res) {
           const hierarchyCategories = await this.findHierarchyByGroupCategories({refcategoriesgroup: grcategories['refcategoriesgroup'], refcompany: categoriesAffectation.refcompany, refcategories: undefined})
           res[i]['categories'] = hierarchyCategories;
           i++;
         }
+
         return res;
       })
       .catch((err) => {

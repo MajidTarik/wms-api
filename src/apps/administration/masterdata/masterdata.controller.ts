@@ -9,6 +9,7 @@ import {PaymentconditionFindDto} from "./DTO/paymentcondition-find.dto";
 import {PaymentmethodFindDto} from "./DTO/paymentmethod-find.dto";
 import {VendorgroupFindDto} from "./DTO/vendorgroup-find.dto";
 import {VendortypeFindDto} from "./DTO/vendortype-find.dto";
+import {ControlobjectFindDto} from "./DTO/controlobject-find.dto";
 
 @Controller('masterdata')
 export class MasterdataController {
@@ -183,6 +184,25 @@ export class MasterdataController {
     async getVendortype(@Body() vendortypeDto: VendortypeFindDto) {
         try {
             return await this.masterdataService.getVendortype(vendortypeDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
+
+    @Post('findcontrolobject')
+    async findControlobject(@Body() controlobjectDto: ControlobjectFindDto) {
+        try {
+            console.log(controlobjectDto)
+            return await this.masterdataService.findControlobject(controlobjectDto);
         } catch (e) {
             throw new HttpException(
                 {

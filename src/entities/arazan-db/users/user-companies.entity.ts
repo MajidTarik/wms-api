@@ -17,7 +17,7 @@ export class UserCompaniesEntity {
   refcompany: string;
 
   @PrimaryColumn()
-  id: number;
+  matricule: string;
 
   @Column({ default: true })
   actif: boolean;
@@ -28,19 +28,14 @@ export class UserCompaniesEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity, { nullable: true })
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity,{ nullable: true })
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.userscompanies, {nullable: false})
   @JoinColumn({ name: 'refcompany' })
   company: CompanyEntity;
 
   @ManyToOne(() => UserEntity, (userentity) => userentity.companiesusers, {nullable: false})
-  @JoinColumn({ name: 'id' })
+  @JoinColumn([
+    { name: 'matricule', referencedColumnName: 'matricule' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
   user: UserEntity;
 }

@@ -10,12 +10,6 @@ export class CreateUserDto {
   @IsString()
   readonly pwdConfirmation: string;
 
-  @IsInt()
-  readonly matriculeCreated: number;
-
-  @IsInt()
-  readonly matriculeLastUpdate: number;
-
   @IsString()
   @MinLength(3)
   readonly lastname: string;
@@ -27,7 +21,7 @@ export class CreateUserDto {
   @IsEmail()
   readonly email: string;
 
-  @IsInt()
+  @IsString()
   readonly matricule: string;
 
   @IsBoolean()

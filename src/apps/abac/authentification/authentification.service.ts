@@ -26,11 +26,10 @@ export class AuthentificationService {
 
   async login(user: UserEntity) {
     const payload = {
-      matricule: user.matricule,
       lastname: user.lastname,
       firstname: user.firstname,
       email: user.email,
-      sub: user.id,
+      sub: user.matricule,
       companiesusers: JSON.stringify(user.companiesusers),
       refcompany: user.refcompany,
     };

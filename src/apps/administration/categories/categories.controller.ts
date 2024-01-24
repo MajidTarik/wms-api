@@ -102,24 +102,6 @@ export class CategoriesController {
     }
   }
 
-  @Get('findcategoriestype')
-  async findCategoriestype(@Param() param) {
-    try {
-      return await this.categoriesService.findCategoriestype();
-    } catch (e) {
-      throw new HttpException(
-        {
-          status: e.status,
-          error: e.response.error,
-        },
-        e.status,
-        {
-          cause: e,
-        },
-      );
-    }
-  }
-
   @Post('findcategoriesbyentity')
   async findCategoriesByEntity(@Body() categoriesAffectation: CategoriesAffectationDto) {
     try {

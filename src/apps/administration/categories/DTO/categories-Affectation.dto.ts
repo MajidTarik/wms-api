@@ -6,5 +6,5 @@ export class CategoriesAffectationDto {
 
   @IsString() readonly refentity: string;
 
-  @IsString() readonly refcategoriestype: string;
+  @IsString() readonly refcontrolobject: string;
 }

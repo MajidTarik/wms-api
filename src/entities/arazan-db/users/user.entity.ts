@@ -3,9 +3,9 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn, ManyToOne, OneToMany,
-  OneToOne,
+  OneToOne, PrimaryColumn,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
+  UpdateDateColumn, Unique
 } from "typeorm";
 import { UserCompaniesEntity } from "./user-companies.entity";
 import { ParametresAttributEntity } from "../parametres/parametres-attribut.entity";
@@ -13,14 +13,13 @@ import { CompanyEntity } from "../cartography/company.entity";
 import { ParametresTypesEntity } from "../parametres/parametres-types.entity";
 
 @Entity('user')
+@Unique(['login', 'refcompany'])
+@Unique(['email', 'refcompany'])
 export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-  
-  @Column({unique: true})
+  @Column()
   login: string;
 
-  @Column({nullable: true})
+  @PrimaryColumn()
   refcompany: string;
   
   @Column()
@@ -36,14 +35,6 @@ export class UserEntity {
   //@Column({type: 'timestamptz', default: () => "CURRENT_TIMESTAMP"})
   @UpdateDateColumn({type: 'timestamptz'})
   datetimelastupdate: Date;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
   
   @Column()
   lastname: string;
@@ -51,14 +42,17 @@ export class UserEntity {
   @Column()
   firstname: string;
   
-  @Column({unique: true})
+  @Column()
   email: string;
   
-  @Column({unique: true})
+  @PrimaryColumn()
   matricule: string;
 
   @OneToMany(() => UserCompaniesEntity, (usercompaniesentity) => usercompaniesentity.user)
-  @JoinColumn({ name: 'id' })
+  @JoinColumn([
+    { name: 'matricule', referencedColumnName: 'matricule' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
   companiesusers: UserCompaniesEntity[];
 
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.users, {nullable: false})

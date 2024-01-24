@@ -50,7 +50,7 @@ export class UsersService {
 
   async setDefaultcompany(setDefaultcompany: SetDefaultCompanyDto) {
     await this.userRepository
-      .findOneBy({ id: setDefaultcompany.idUser })
+      .findOneBy({ matricule: setDefaultcompany.matricule })
       .then(async (user) => {
         if (user) {
           user.refcompany = setDefaultcompany.refcompany;

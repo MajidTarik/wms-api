@@ -30,12 +30,6 @@ export class AreaEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @ManyToOne(() => UserEntity)
-  idoperateurcreation: UserEntity;
-
-  @ManyToOne(() => UserEntity)
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
   @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
   company: CompanyEntity;

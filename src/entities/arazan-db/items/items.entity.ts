@@ -15,6 +15,8 @@ import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
 import { PricemodelEntity } from "./pricemodel.entity";
 import { VariantsEntity } from "./variants.entity";
 import {ItemtrackingEntity} from "./itemtracking.entity";
+import {PurchaserequisitionLinesEntity} from "../inventory/purchaserequisition-lines.entity";
+import {CategoriesaffectationsEntity} from "../categories/categoriesaffectations.entity";
 
 @Entity('items')
 export class ItemsEntity {
@@ -87,14 +89,6 @@ export class ItemsEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
   @JoinColumn({ name: 'refcompany' })
   company: CompanyEntity;
@@ -151,4 +145,18 @@ export class ItemsEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   variants: VariantsEntity[];
+
+  @OneToMany(() => PurchaserequisitionLinesEntity, (purchaserequisitionlinesEntity) => purchaserequisitionlinesEntity.item)
+  @JoinColumn([
+    { name: 'refitem', referencedColumnName: 'refitem' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  purchaserequisitionlines: PurchaserequisitionLinesEntity[];
+
+  @OneToMany(() => CategoriesaffectationsEntity, (categoriesaffectationsentity) => categoriesaffectationsentity.item)
+  @JoinColumn([
+    { name: 'refitem', referencedColumnName: 'refentity' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  categoriesaffectation: CategoriesaffectationsEntity[];
 }

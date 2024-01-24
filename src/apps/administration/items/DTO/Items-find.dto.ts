@@ -9,7 +9,6 @@ export class ItemsFindDto {
   readonly item: string;
 
   @IsString()
-  @IsOptional()
   readonly refcompany: string;
 
   @IsString()

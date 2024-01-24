@@ -31,14 +31,6 @@ export class UnitsEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
   @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
   company: CompanyEntity;

@@ -12,6 +12,7 @@ import { UserEntity } from '../users/user.entity';
 import { CompanyEntity } from '../cartography/company.entity';
 import { CategoriesgroupEntity } from "./categoriesgroup.entity";
 import { CategoriesEntity } from "./categories.entity";
+import {ItemsEntity} from "../items/items.entity";
 
 @Entity('categoriesaffectations')
 export class CategoriesaffectationsEntity {
@@ -39,14 +40,6 @@ export class CategoriesaffectationsEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
   @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
   company: CompanyEntity;
@@ -65,4 +58,11 @@ export class CategoriesaffectationsEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   categorygroup: CategoriesgroupEntity;
+
+  @ManyToOne(() => ItemsEntity, (itemsentity) => itemsentity.categoriesaffectation, { nullable: false })
+  @JoinColumn([
+    { name: 'refentity', referencedColumnName: 'refitem' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  item: ItemsEntity;
 }

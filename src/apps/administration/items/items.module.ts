@@ -34,6 +34,6 @@ import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entit
     CategoriesModule,
   ],
   providers: [ItemsService],
-  exports: [],
+  exports: [ItemsService],
 })
 export class ItemsModule {}

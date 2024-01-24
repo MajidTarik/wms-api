@@ -8,13 +8,10 @@ import {
   PrimaryColumn,
   UpdateDateColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
 import { CompanyEntity } from '../cartography/company.entity';
-import { ItemsEntity } from "../items/items.entity";
-import { UomconversionEntity } from "../items/uomconversion.entity";
 import { CategoriesEntity } from "./categories.entity";
-import { CategoriestypeEntity } from "./categoriestype.entity";
 import { CategoriesaffectationsEntity } from "./categoriesaffectations.entity";
+import { ControlobjectEntity } from "../masterdata/controlobject.entity";
 
 @Entity('categoriesgroup')
 export class CategoriesgroupEntity {
@@ -28,7 +25,7 @@ export class CategoriesgroupEntity {
   categoriesgroup: string;
 
   @Column()
-  refcategoriestype: string;
+  refcontrolobject: string;
 
   @Column()
   actif: boolean;
@@ -39,21 +36,13 @@ export class CategoriesgroupEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurcreation: UserEntity;
-
-  @OneToOne(() => UserEntity)
-  @JoinColumn()
-  idoperateurlastupdate: UserEntity;
-
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
   @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
   company: CompanyEntity;
 
-  @ManyToOne(() => CategoriestypeEntity, (categoriestypeEntity) => categoriestypeEntity.categoriesgroups, { nullable: false })
-  @JoinColumn([{ name: 'refcategoriestype', referencedColumnName: 'refcategoriestype' }])
-  categoriestype: CategoriestypeEntity;
+  @ManyToOne(() => ControlobjectEntity, (controlobjectentity) => controlobjectentity.categoriesgroups, { nullable: false })
+  @JoinColumn([{ name: 'refcontrolobject', referencedColumnName: 'refcontrolobject' }])
+  controlobject: ControlobjectEntity;
 
   @OneToMany(() => CategoriesEntity, (categoriesentity) => categoriesentity.categorygroup, { nullable: false })
   @JoinColumn([

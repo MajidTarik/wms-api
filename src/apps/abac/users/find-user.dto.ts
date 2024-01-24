@@ -1,5 +1,5 @@
-import { IsInt } from 'class-validator';
+import {IsString} from 'class-validator';
 export class FindUserDto {
-  @IsInt()
+  @IsString()
   readonly matricule: string;
 }
