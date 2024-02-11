@@ -22,6 +22,14 @@ export class VariantSaveDto {
 
   @IsNumber() readonly daystoexpiration: number;
 
+  @IsString()
+  @IsOptional()
+  readonly reftaxesales: string;
+
+  @IsString()
+  @IsOptional()
+  readonly reftaxepurchase: string;
+
   @IsNumber() @IsOptional() idheaderparametre: number;
 
   @IsObject() readonly parametres: object;

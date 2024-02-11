@@ -13,6 +13,7 @@ import {ItemsEntity} from "../items/items.entity";
 import {VariantsEntity} from "../items/variants.entity";
 import {ParametresHeaderEntity} from "../parametres/parametres-header.entity";
 import {VendorEntity} from "../masterdata/vendor.entity";
+import {CurrencyEntity} from "../masterdata/currency.entity";
 
 @Entity('purchaserequisitionlines')
 export class PurchaserequisitionLinesEntity {
@@ -40,8 +41,23 @@ export class PurchaserequisitionLinesEntity {
   @Column({type: "decimal", precision: 10, scale: 2, default: 0})
   price: number;
 
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  discountvalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  discountpercentage: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  lineamounthtvalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  linepricehtvalue: number;
+
   @Column({nullable: true})
   idheaderparametre: number;
+
+  @Column({nullable: true})
+  refcurrency: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   datetimecreation: Date;
@@ -84,4 +100,10 @@ export class PurchaserequisitionLinesEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   vendor: VendorEntity;
+
+  @ManyToOne(() => CurrencyEntity, (currencyentity) => currencyentity.refcurrency, {nullable: true})
+  @JoinColumn([
+    { name: 'refcurrency', referencedColumnName: 'refcurrency' },
+  ])
+  currency: CurrencyEntity;
 }

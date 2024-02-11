@@ -4,35 +4,73 @@ export class ItemsSaveDto {
 
   @IsString() readonly refcompany: string;
 
-  @IsString() readonly item: string;
+  @IsOptional()
+  @IsString()
+  readonly item: string;
 
-  @IsBoolean() readonly stopedpurch: boolean;
+  @IsBoolean()
+  @IsOptional()
+  readonly stopedpurch: boolean;
 
-  @IsBoolean() readonly stopedsales: boolean;
+  @IsBoolean()
+  @IsOptional()
+  readonly stopedsales: boolean;
 
-  @IsBoolean() readonly stopedinvent: boolean;
+  @IsBoolean()
+  @IsOptional()
+  readonly stopedinvent: boolean;
 
-  @IsString() readonly barcode: string;
+  @IsString()
+  @IsOptional()
+  readonly barcode: string;
 
-  @IsNumber() readonly safetystock: number;
+  @IsNumber()
+  @IsOptional()
+  readonly safetystock: number;
 
-  @IsString() readonly refunitinvent: string;
+  @IsString()
+  @IsOptional()
+  readonly refunitinvent: string;
 
-  @IsString() readonly refunitsales: string;
+  @IsString()
+  @IsOptional()
+  readonly refunitsales: string;
 
-  @IsString() readonly refunitpurch: string;
+  @IsString()
+  @IsOptional()
+  readonly refunitpurch: string;
 
-  @IsString() readonly refunitorder: string;
+  @IsString()
+  @IsOptional()
+  readonly refunitorder: string;
 
-  @IsString() readonly itemdescription: string;
+  @IsString()
+  @IsOptional()
+  readonly itemdescription: string;
 
-  @IsString() readonly searchname: string;
+  @IsString()
+  @IsOptional()
+  readonly searchname: string;
 
-  @IsNumber() readonly expirationdate: number;
+  @IsNumber()
+  @IsOptional()
+  readonly expirationdate: number;
 
-  @IsString() readonly refpricemodel: string;
+  @IsString()
+  @IsOptional()
+  readonly refpricemodel: string;
 
-  @IsNumber() @IsOptional() idheaderparametre: number;
+  @IsString()
+  @IsOptional()
+  readonly reftaxesales: string;
+
+  @IsString()
+  @IsOptional()
+  readonly reftaxepurchase: string;
+
+  @IsNumber()
+  @IsOptional()
+  idheaderparametre: number;
 
   @IsObject() readonly parametres: object;
   @IsArray() readonly categories: [];

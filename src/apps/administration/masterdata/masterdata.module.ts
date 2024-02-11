@@ -14,6 +14,11 @@ import {VendorgroupEntity} from "../../../entities/arazan-db/masterdata/vendorgr
 import {VendortypeEntity} from "../../../entities/arazan-db/masterdata/vendortype.entity";
 import { MasterdataService } from './masterdata.service';
 import {ControlobjectEntity} from "../../../entities/arazan-db/masterdata/controlobject.entity";
+import {TaxeGroupEntity} from "../../../entities/arazan-db/masterdata/taxe-group.entity";
+import {TaxeEntity} from "../../../entities/arazan-db/masterdata/taxe.entity";
+import {TaxeByGroupEntity} from "../../../entities/arazan-db/masterdata/taxe-by-group.entity";
+import {TaxeLineEntity} from "../../../entities/arazan-db/masterdata/taxe-line.entity";
+import {DatesProvider} from "../../../helpers/providers/dates.provider";
 
 @Module({
   controllers: [
@@ -30,12 +35,17 @@ import {ControlobjectEntity} from "../../../entities/arazan-db/masterdata/contro
       VendorgroupEntity,
       VendortypeEntity,
       ControlobjectEntity,
+      TaxeEntity,
+      TaxeGroupEntity,
+      TaxeByGroupEntity,
+      TaxeLineEntity,
     ]),
     ParametresModule,
     CategoriesModule,
   ],
   providers: [
-      MasterdataService
+      MasterdataService,
+      DatesProvider,
   ],
   exports: [MasterdataService],
 })

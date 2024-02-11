@@ -2,7 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn, OneToMany,
+  JoinColumn, ManyToOne, OneToMany,
   OneToOne,
   PrimaryColumn,
   UpdateDateColumn
@@ -19,11 +19,15 @@ import { UserCompaniesEntity } from "../users/user-companies.entity";
 import { UomconversionvariantEntity } from "../items/uomconversionvariant.entity";
 import { CategoriesgroupEntity } from "../categories/categoriesgroup.entity";
 import {AisleEntity} from "./aisle.entity";
+import {CurrencyEntity} from "../masterdata/currency.entity";
 
 @Entity('company')
 export class CompanyEntity {
   @PrimaryColumn()
   refcompany: string;
+
+  @Column({nullable: true})
+  refcurrency: string;
 
   @Column()
   company: string;
@@ -102,4 +106,10 @@ export class CompanyEntity {
   @OneToMany(() => AisleEntity, (aisleentity) => aisleentity.company)
   @JoinColumn({ name: 'refcompany' })
   aisles: AisleEntity[];
+
+  @ManyToOne(() => CurrencyEntity, (currencyentity) => currencyentity.refcurrency, {nullable: true})
+  @JoinColumn([
+    { name: 'refcurrency', referencedColumnName: 'refcurrency' },
+  ])
+  currency: CurrencyEntity;
 }

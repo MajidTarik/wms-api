@@ -4,6 +4,7 @@ export class PurchaseorderFindDto {
   readonly refcompany: string;
 
   @IsString()
+  @IsOptional()
   readonly refpurchaserequisition: string;
 
   @IsString()

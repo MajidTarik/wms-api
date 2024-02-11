@@ -18,6 +18,7 @@ import { DeliverymodeEntity } from "./deliverymode.entity";
 import { PaymentconditionEntity } from "./paymentcondition.entity";
 import { PaymentmethodEntity } from "./paymentmethod.entity";
 import { LanguageEntity } from "./language.entity";
+import {TaxeGroupEntity} from "./taxe-group.entity";
 
 @Entity('vendor')
 export class VendorEntity {
@@ -90,6 +91,9 @@ export class VendorEntity {
   @Column({nullable: false})
   reflanguage: string;
 
+  @Column({nullable: true})
+  reftaxegroup: string;
+
   @Column()
   bloqued: boolean;
 
@@ -160,6 +164,14 @@ export class VendorEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   vendorinvoicing: VendorEntity;
+
+  @ManyToOne(() => TaxeGroupEntity, (taxegroupentity) => taxegroupentity.reftaxegroup, {nullable: true})
+  @JoinColumn([
+    { name: 'reftaxegroup', referencedColumnName: 'reftaxegroup' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxegroup: TaxeGroupEntity;
+
   /**
 
 

@@ -13,6 +13,12 @@ import {PurchaserequisitionLinesItemUpdateDto} from "./DTO/purchaserequisition-l
 import {PurchaserequisitionLinesAxeAnalyticsDto} from "./DTO/purchaserequisition-lines-axe-analytics.dto";
 import {PurchaserequisitionLinesVendorUpdateDto} from "./DTO/PurchaserequisitionLinesVendorUpdateDto";
 import {PurchaserequisitionLinesDeleteDto} from "./DTO/purchaserequisition-lines-delete.dto";
+import {
+    PurchaserequisitionLinesDiscountValueUpsertDto
+} from "./DTO/purchaserequisition-lines-discount-value-upsert.dto";
+import {
+    PurchaserequisitionLinesDiscountPercentageUpsertDto
+} from "./DTO/purchaserequisition-lines-discount-percentage-upsert.dto";
 
 @Controller('purchaserequisition')
 export class PurchaserequisitionController {
@@ -152,6 +158,42 @@ export class PurchaserequisitionController {
     async upsertPurchReqLinePrice(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesPriceUpsertDto) {
         try {
             return await this.purchReqService.upsertPurchReqLinePrice(purchaserequisitionlinesFindDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
+
+    @Post('upsertpurchreqlinediscountvalue')
+    async upsertPurchReqLineDiscountValue(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesDiscountValueUpsertDto) {
+        try {
+            return await this.purchReqService.upsertPurchReqLineDiscountValue(purchaserequisitionlinesFindDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
+
+    @Post('upsertpurchreqlinediscountpercentage')
+    async upsertPurchReqLineDiscountPercentage(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesDiscountPercentageUpsertDto) {
+        try {
+            return await this.purchReqService.upsertPurchReqLineDiscountPercentage(purchaserequisitionlinesFindDto);
         } catch (e) {
             throw new HttpException(
                 {

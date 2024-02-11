@@ -17,6 +17,7 @@ import { VariantsEntity } from "./variants.entity";
 import {ItemtrackingEntity} from "./itemtracking.entity";
 import {PurchaserequisitionLinesEntity} from "../inventory/purchaserequisition-lines.entity";
 import {CategoriesaffectationsEntity} from "../categories/categoriesaffectations.entity";
+import {TaxeEntity} from "../masterdata/taxe.entity";
 
 @Entity('items')
 export class ItemsEntity {
@@ -80,6 +81,12 @@ export class ItemsEntity {
   @Column({nullable: true})
   refitemtracking: string;
 
+  @Column({nullable: true})
+  reftaxepurchase: string;
+
+  @Column({nullable: true})
+  reftaxesales: string;
+
   @Column()
   idheaderparametre: number;
 
@@ -138,6 +145,19 @@ export class ItemsEntity {
   @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
   headerparametre: ParametresHeaderEntity;
 
+  @ManyToOne(() => TaxeEntity, (taxeentity) => taxeentity.taxeitemsales, {nullable: false})
+  @JoinColumn([
+    { name: 'reftaxesales', referencedColumnName: 'reftaxe' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxesales: TaxeEntity;
+
+  @ManyToOne(() => TaxeEntity, (taxeentity) => taxeentity.taxeitempurchase, {nullable: false})
+  @JoinColumn([
+    { name: 'reftaxepurchase', referencedColumnName: 'reftaxe' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxepurchase: TaxeEntity;
 
   @OneToMany(() => VariantsEntity, (variantsentity) => variantsentity.refitem)
   @JoinColumn([

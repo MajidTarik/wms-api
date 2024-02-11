@@ -22,7 +22,13 @@ import {PurchaserequisitionLinesFindByIdDto} from "./DTO/purchaserequisition-lin
 import {MasterdataService} from "../../administration/masterdata/masterdata.service";
 import {Purchaseorderstatuts} from "../../../helpers/purchaseorderstatuts";
 import {PurchaseorderService} from "../purchaseorder/purchaseorder.service";
-import {IsOptional, IsString} from "class-validator";
+import {IsNumber, IsOptional, IsString} from "class-validator";
+import {
+    PurchaserequisitionLinesDiscountValueUpsertDto
+} from "./DTO/purchaserequisition-lines-discount-value-upsert.dto";
+import {
+    PurchaserequisitionLinesDiscountPercentageUpsertDto
+} from "./DTO/purchaserequisition-lines-discount-percentage-upsert.dto";
 
 @Injectable()
 export class PurchaserequisitionService {
@@ -268,6 +274,8 @@ export class PurchaserequisitionService {
             .leftJoinAndSelect('variant.headervariant', 'parametresheader')
             .leftJoinAndSelect('parametresheader.parametreslines', 'parametreslines')
             .leftJoinAndSelect('purchaserequisitionlines.vendor', 'vendor')
+            .leftJoinAndSelect('vendor.currency', 'currency')
+            .leftJoinAndSelect('vendor.vendorgroup', 'vendorgroup')
             .where('purchaserequisitionlines.refcompany = :refcompany', {refcompany: purchaserequisitionlinesFindDto.refcompany})
             .andWhere('purchaserequisitionlines.refpurchaserequisition = :refpurchaserequisition', {refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition})
 
@@ -290,6 +298,16 @@ export class PurchaserequisitionService {
             });
     }
 
+    async updateLineHtPrice(price, discountvalue, discountpercentage){
+        const linepricetht = ((price - discountvalue) - ((price - discountvalue) * discountpercentage / 100))
+        if (linepricetht <= 0.00){
+            const message = 'Price line is invalide please chek the price an the discounts !'
+            throw new BadRequestException(message, { cause: message, description: message,});
+        } else {
+            return linepricetht;
+        }
+    }
+
     async upsertPurchReqLinePrice(purchaserequisitionlinesFindDto: PurchaserequisitionLinesPriceUpsertDto){
         // Validation de statut d'action.
         await this.isPurchReqStatut(
@@ -307,6 +325,78 @@ export class PurchaserequisitionService {
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
         ptline.price = purchaserequisitionlinesFindDto.price;
+        ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
+
+        return await this.purchreqlinesRepository
+            .save(ptline)
+            .then(async (res) => {
+                return await this.getPurchReqLines({
+                    refcompany: purchaserequisitionlinesFindDto.refcompany,
+                    refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
+                    id: res.id,
+                    refvendor: undefined,
+                });
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+
+    async upsertPurchReqLineDiscountValue(purchaserequisitionlinesFindDto: PurchaserequisitionLinesDiscountValueUpsertDto){
+        // Validation de statut d'action.
+        await this.isPurchReqStatut(
+            {
+                refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
+                refcompany: purchaserequisitionlinesFindDto.refcompany
+            },
+            Purchaserequisitionstatuts.REVS.toString()
+        )
+
+        // Ligne de DA invalid.
+        const ptline = await this.findPurchReqLinesIfExist({
+            id: purchaserequisitionlinesFindDto.id,
+            refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+        })
+        ptline.discountvalue = purchaserequisitionlinesFindDto.discountvalue;
+        ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
+
+        return await this.purchreqlinesRepository
+            .save(ptline)
+            .then(async (res) => {
+                return await this.getPurchReqLines({
+                    refcompany: purchaserequisitionlinesFindDto.refcompany,
+                    refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
+                    id: res.id,
+                    refvendor: undefined,
+                });
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+
+    async upsertPurchReqLineDiscountPercentage(purchaserequisitionlinesFindDto: PurchaserequisitionLinesDiscountPercentageUpsertDto){
+        // Validation de statut d'action.
+        await this.isPurchReqStatut(
+            {
+                refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
+                refcompany: purchaserequisitionlinesFindDto.refcompany
+            },
+            Purchaserequisitionstatuts.REVS.toString()
+        )
+
+        // Ligne de DA invalid.
+        const ptline = await this.findPurchReqLinesIfExist({
+            id: purchaserequisitionlinesFindDto.id,
+            refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+        })
+        ptline.discountpercentage = purchaserequisitionlinesFindDto.discountpercentage;
+        ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -340,6 +430,8 @@ export class PurchaserequisitionService {
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
         ptline.quantity = purchaserequisitionlinesFindDto.quantity;
+        ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -516,13 +608,25 @@ export class PurchaserequisitionService {
             Purchaserequisitionstatuts.REVS.toString()
         )
 
+        //Vendor invalid
+        const vendor = await this.masterdataService.getVendor({refcompany: purchaserequisitionlinesFindDto.refcompany, refvendor: purchaserequisitionlinesFindDto.refvendor})
+        console.log(vendor)
+        if(vendor.length != 1 || vendor[0].bloqued === true) {
+            const message = 'invalide Vendor!'
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+
         // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
             refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
+
+
+
         ptline.refvendor = purchaserequisitionlinesFindDto.refvendor;
+        ptline.refcurrency = vendor[0].refcurrency
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -574,7 +678,7 @@ export class PurchaserequisitionService {
         return await this.purchreqlinesRepository
             .createQueryBuilder()
             .update(PurchaserequisitionLinesEntity)
-            .set({ refvendor: null, price: 0 })
+            .set({ refvendor: null, price: 0, discountpercentage: 0, discountvalue: 0 })
             .where("refcompany = :refcompany and refpurchaserequisition = :refpurchaserequisition ", { refcompany: refcompany, refpurchaserequisition: refpurchaserequisition })
             .execute()
             .then(async (res) => {

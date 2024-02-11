@@ -13,6 +13,7 @@ import { CompanyEntity } from '../cartography/company.entity';
 import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
 import { ItemsEntity } from "./items.entity";
 import {PurchaserequisitionLinesEntity} from "../inventory/purchaserequisition-lines.entity";
+import {TaxeEntity} from "../masterdata/taxe.entity";
 
 @Entity('variants')
 @Unique(['refcompany', 'refitem', 'idheadervariant'])
@@ -56,6 +57,12 @@ export class VariantsEntity {
   @Column()
   idheaderparametre: number;
 
+  @Column({nullable: true})
+  reftaxepurchase: string;
+
+  @Column({nullable: true})
+  reftaxesales: string;
+
   @CreateDateColumn({ type: 'timestamptz' })
   datetimecreation: Date;
 
@@ -87,4 +94,18 @@ export class VariantsEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   purchaserequisitionlines: PurchaserequisitionLinesEntity[];
+
+  @ManyToOne(() => TaxeEntity, (taxeentity) => taxeentity.taxeitemsales, {nullable: false})
+  @JoinColumn([
+    { name: 'reftaxesales', referencedColumnName: 'reftaxe' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxesales: TaxeEntity;
+
+  @ManyToOne(() => TaxeEntity, (taxeentity) => taxeentity.taxeitempurchase, {nullable: false})
+  @JoinColumn([
+    { name: 'reftaxepurchase', referencedColumnName: 'reftaxe' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxepurchase: TaxeEntity;
 }

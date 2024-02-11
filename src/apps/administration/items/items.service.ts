@@ -196,41 +196,68 @@ export class ItemsService {
   }
 
   async findItem(itemfinddto: ItemsFindDto) {
-    return await this.itemRepository
-      .find({
-        where: [
-          {
-            refitem: itemfinddto?.refitem || undefined,
-            item: itemfinddto?.item || undefined,
-            refcompany: itemfinddto.refcompany,
-            searchname: itemfinddto?.searchname || undefined,
-            barcode: itemfinddto?.barcode || undefined,
-            itemdescription: itemfinddto?.itemdescription || undefined,
-          },
-        ],
-        relations: {
-          pricemodel: true,
-          headerparametre: true,
-          unitorder: true,
-          unitpurch: true,
-          unitsales: true,
-          unitinvent: true,
-          company: true,
-          itemtracking: true,
-        },
-        order: { refitem: 'ASC' },
-      })
-      .then(async (res) => {
-        return res;
-      })
-      .catch((err) => {
-        throw new BadRequestException(err.message, { cause: err, description: err.query,});
-      });
+      console.log('-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-');
+    const query = await this.itemRepository
+        .createQueryBuilder('item')
+        .leftJoinAndSelect(
+            'item.pricemodel',
+            'pricemodel',
+        )
+        .leftJoinAndSelect(
+            'item.headerparametre',
+            'headerparametre',
+        )
+        .leftJoinAndSelect(
+            'item.unitorder',
+            'unit unitorder',
+        )
+        .leftJoinAndSelect(
+            'item.unitpurch',
+            'unit unitpurch',
+        )
+        .leftJoinAndSelect(
+            'item.unitsales',
+            'unit unitsales',
+        )
+        .leftJoinAndSelect(
+            'item.unitinvent',
+            'unit unitinvent',
+        )
+        .leftJoinAndSelect(
+            'item.company',
+            'company',
+        )
+        .leftJoinAndSelect(
+            'item.itemtracking',
+            'itemtracking',
+        )
+        .leftJoinAndSelect(
+            'item.taxesales',
+            'taxe taxesales',
+        )
+        .leftJoinAndSelect(
+            'item.taxepurchase',
+            'taxe taxepurchase',
+        )
+        .where('item.refcompany = :refcompany', {refcompany: itemfinddto.refcompany})
+        if(![undefined, null, ''].includes(itemfinddto.refitem)) {
+            query.andWhere('item.refitem = :refitem', {refitem: itemfinddto.refitem})
+        }
+
+        return await query.orderBy('item.refitem', 'DESC')
+            .getMany()
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
   }
 
   async saveItem(itemdto: ItemsSaveDto) {
     const idheaderparametre = await this.parametreService.checkaxesbycompany(itemdto.parametres, itemdto.refcompany, 'ANALYTIC');
     itemdto['idheaderparametre'] = Number(idheaderparametre);
+    console.log(itemdto);
     const item = await this.itemRepository.create(itemdto);
     return await this.itemRepository
       .save(item)
@@ -341,10 +368,12 @@ export class ItemsService {
   }
   // -------------------------------------- Variant Logistique
   async saveVariant(variantdto: VariantSaveDto) {
+      console.log(variantdto);
     const idheaderparametre = await this.parametreService.checkaxesbycompany(variantdto.parametres, variantdto.refcompany, 'ANALYTIC');
     variantdto['idheaderparametre'] = Number(idheaderparametre);
     const idheadervariant = await this.parametreService.checkaxesbycompany(variantdto.variants, variantdto.refcompany, 'VARIANTLOGISTC');
     variantdto['idheadervariant'] = Number(idheadervariant);
+    console.log('________________________', variantdto)
     const variant = await this.variantRepository.create(variantdto);
     return await this.variantRepository
       .save(variant)
@@ -366,7 +395,7 @@ export class ItemsService {
             refcompany: variantfinddto.refcompany,
           },
         ],
-        relations: ['company', 'item', 'headerparametre', 'headervariant', 'headervariant.parametreslines'],
+        relations: ['company', 'item', 'headerparametre', 'headervariant', 'headervariant.parametreslines', 'taxesales', 'taxepurchase'],
         order: { refitem: 'ASC' },
         select: {},
       })

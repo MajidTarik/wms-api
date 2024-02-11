@@ -67,7 +67,4 @@ export class PurchaseorderEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   purchaserequisition: PurchaserequisitionEntity;
-
-
-
 }

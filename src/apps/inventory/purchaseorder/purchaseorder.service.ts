@@ -8,6 +8,7 @@ import {PurchaseorderEntity} from "../../../entities/arazan-db/inventory/purchas
 import {PurchaserequisitionService} from "../purchaserequisition/purchaserequisition.service";
 import {IsNumber, IsOptional, IsString} from "class-validator";
 import {PurchaseorderLinesEntity} from "../../../entities/arazan-db/inventory/purchaseorder-lines.entity";
+import {PurchaseorderFindDto} from "./DTO/purchaseorder-find.dto";
 
 @Injectable()
 export class PurchaseorderService {
@@ -45,14 +46,15 @@ export class PurchaseorderService {
             });
     }
 
-    async getPurchOrder(purchaseorderfindDto){
+    async getPurchOrder(purchaseorderfindDto: PurchaseorderFindDto){
         return await this.purchorderRepository
             .find({
                 where: [{
                     refcompany: purchaseorderfindDto.refcompany,
-                    refpurchaserequisition: purchaseorderfindDto.refpurchaserequisition,
+                    refpurchaserequisition: purchaseorderfindDto?.refpurchaserequisition,
                     refpurchaseorder: purchaseorderfindDto?.refpurchaseorder,
-                }]
+                }],
+                relations: ['purchaserequisition', 'vendor', 'purchaseorderstatuts']
             })
             .then(async (res) => {
                 return res;
