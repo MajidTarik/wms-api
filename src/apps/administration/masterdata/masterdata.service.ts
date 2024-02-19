@@ -39,6 +39,7 @@ import {TaxeGroupFindDto} from "./DTO/taxe-group-find.dto";
 import {TaxeGroupSaveDto} from "./DTO/taxe-group-save.dto";
 import {TaxeByGroupEntity} from "../../../entities/arazan-db/masterdata/taxe-by-group.entity";
 import {TaxeByGroupSaveDto} from "./DTO/taxe-by-group-save.dto";
+import {VendorValidityDto} from "./DTO/vendor-validity.dto";
 
 @Injectable()
 export class MasterdataService {
@@ -158,6 +159,31 @@ export class MasterdataService {
             });
     }
 
+    async isVendorValid(vendorDto: VendorValidityDto){
+        const vendors = await this.getVendor({
+            refcompany: vendorDto.refcompany,
+            refvendor: vendorDto.refvendor,
+        })
+        let message = '';
+        if(vendors.length != 1){
+            message = 'Vendor '+vendorDto.refvendor+ ' Introuvable!';
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        if(vendors[0].bloqued) {
+            message = 'Vendor bloqué'+vendorDto.refvendor;
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        if([undefined, null].includes(vendors[0].reftaxegroup)) {
+            message = 'Taxe group de Vendor non paramétré'+vendorDto.refvendor;
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        if([undefined, null].includes(vendors[0].refcurrency)) {
+            message = 'Currency non paramétré '+vendorDto.refvendor;
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+
+    }
+
     // ____________________________________________________ MADTERDATA MANAGEMENT --------------------------------
 
     async findControlobject(controlobjectDto: ControlobjectFindDto) {
@@ -179,6 +205,7 @@ export class MasterdataService {
                 throw new BadRequestException(err.message, { cause: err, description: err.query,});
             });
     }
+
     async getCurrency(currencyDto: CurrencyFindDto) {
         return await this.currrencyRepository
             .find({
@@ -301,7 +328,6 @@ export class MasterdataService {
             .andWhere('(vendor.refvendor = vendor.refvendorinvoicing OR vendor.refvendorinvoicing is null)')
             .getMany()
             .then(async (res) => {
-                console.log('----------------->',res)
                 return res;
             })
             .catch((err) => {
@@ -395,9 +421,8 @@ export class MasterdataService {
                 })
             .getRawMany()
             .then(async (res) => {
-                console.log(res);
-                console.log(this.dateProviders.calculateDateDifferenceInDays(new Date(res[0]['maxdatefin']), new Date(taxelineDto.datedebut)))
-                if (res.length == 0) {
+                //console.log(this.dateProviders.calculateDateDifferenceInDays(new Date(res[0]['maxdatefin']), new Date(taxelineDto.datedebut)))
+                if (res[0]['maxdatefin'] == null ) {
                     return true
                 } else if (this.dateProviders.calculateDateDifferenceInDays(new Date(res[0]['maxdatefin']), new Date(taxelineDto.datedebut)) == 1) {
                     return true
@@ -472,7 +497,6 @@ export class MasterdataService {
         return query.getMany()
             .then(async (res) => {
                 if(res.length == 1) {
-                    console.log('=================>');
                     res[0]['taxesNotAffected'] = await this.getTaxeNotAffectedToGroup(taxeDto);
                     res[0]['taxesAffected'] = await this.getAffectedTaxeByGroup(taxeDto);
                 }
@@ -484,7 +508,6 @@ export class MasterdataService {
     }
 
     async saveTaxeGroup(taxeDto: TaxeGroupSaveDto) {
-        console.log(taxeDto);
         const taxeGroup = await this.taxeGroupRepository.create(taxeDto)
         return await this.taxeGroupRepository
             .save(taxeGroup)
@@ -506,7 +529,6 @@ export class MasterdataService {
     }
 
     async taxeAffectation(taxeDto: TaxeByGroupSaveDto){
-        console.log(taxeDto);
         return await this.taxeByGroupRepository.findBy({
             refcompany: taxeDto.refcompany,
             reftaxegroup: taxeDto.reftaxegroup,
@@ -553,6 +575,37 @@ export class MasterdataService {
             .getMany()
             .then(async (res) => {
                 return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+
+    async getCurrentTaxeLineValue(taxelineDto: TaxeLineFindDto){
+        return await this.taxelineRepository
+            .createQueryBuilder('taxeline')
+            .where('cast(now() as date)  between taxeline.datedebut and taxeline.datefin')
+            .andWhere('taxeline.refcompany = :refcompany and taxeline.reftaxe = :reftaxe', {refcompany: taxelineDto.refcompany, reftaxe: taxelineDto.reftaxe})
+            .getMany()
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+
+    async isTaxeAffectationCorrect(affectationTaxeToGroup: {reftaxe: string, reftaxegroup: string, refcompany: string}[], refcompany: string) {
+        return await this.taxeByGroupRepository.findBy({refcompany: refcompany})
+            .then(async (res) => {
+                let message = '';
+                for(let i = 0; i < affectationTaxeToGroup.length; i++){
+                    if(!res.find((affect) => affect.reftaxe == affectationTaxeToGroup[i].reftaxe && affect.reftaxegroup == affectationTaxeToGroup[i].reftaxegroup )) {
+                        message = 'Affectation invalid ' + affectationTaxeToGroup[i].reftaxe + ' to ' + affectationTaxeToGroup[i].reftaxegroup + ' !'
+                        throw new BadRequestException(message, { cause: message, description: message,});
+                    }
+                }
+                return res
             })
             .catch((err) => {
                 throw new BadRequestException(err.message, { cause: err, description: err.query,});

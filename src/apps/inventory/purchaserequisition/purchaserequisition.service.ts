@@ -12,7 +12,7 @@ import {PurchaserequisitionLinesEntity} from "../../../entities/arazan-db/invent
 import {PurchaserequisitionLinesPriceUpsertDto} from "./DTO/purchaserequisition-lines-price-upsert.dto";
 import {PurchaserequisitionLinesQtyUpsertDto} from "./DTO/purchaserequisition-lines-qty-upsert.dto";
 import {PurchaserequisitionLinesVariantUpsertDto} from "./DTO/purchaserequisition-lines-variant-upsert.dto";
-import {PurchaserequisitionLinesItemSaveDto} from "./DTO/purchaserequisition-lines-item-save.dto";
+import {PurchaserequisitionLinesNewDto} from "./DTO/purchaserequisition-lines-new.dto";
 import {PurchaserequisitionLinesItemUpdateDto} from "./DTO/purchaserequisition-lines-item-update.dto";
 import {ItemsService} from "../../administration/items/items.service";
 import {PurchaserequisitionLinesAxeAnalyticsDto} from "./DTO/purchaserequisition-lines-axe-analytics.dto";
@@ -29,6 +29,8 @@ import {
 import {
     PurchaserequisitionLinesDiscountPercentageUpsertDto
 } from "./DTO/purchaserequisition-lines-discount-percentage-upsert.dto";
+import {PurchaserequisitionLinesTaxeUpdateDto} from "./DTO/purchaserequisition-lines-taxe-update.dto";
+import {isUndefined} from "@nestjs/common/utils/shared.utils";
 
 @Injectable()
 export class PurchaserequisitionService {
@@ -100,6 +102,7 @@ export class PurchaserequisitionService {
         // ----------------->>> Modifier la DA.
             if ([Purchaserequisitionstatuts.CLTR.toString(), Purchaserequisitionstatuts.BRLN.toString()].includes(purchreq.refpurchaserequisitionstatuts)) {
                 errormessage = 'le statut '+purchreq.refpurchaserequisitionstatuts+'ne permet pas de revenir au statut Berouillon!';
+
             } else {
                 purchreq.refpurchaserequisitionstatuts = purchaserequisitionChangeStatutDto.refpurchaserequisitionstatuts;
                 purchreq.requisitiondate = new Date();
@@ -120,7 +123,9 @@ export class PurchaserequisitionService {
         // ----------------->>> Lancer à la révision.
             if (![Purchaserequisitionstatuts.BRLN.toString()].includes(purchreq.refpurchaserequisitionstatuts)) {
                 errormessage = 'le statut '+purchreq.refpurchaserequisitionstatuts+'ne permet pas de lancer la révision!';
+
             } else {
+                await this.verifyPurchReqLinesToReview({refpurchaserequisition: purchaserequisitionChangeStatutDto.refpurchaserequisition, refcompany: purchaserequisitionChangeStatutDto.refcompany, refvendor: undefined, id: undefined})
                 purchreq.refpurchaserequisitionstatuts = purchaserequisitionChangeStatutDto.refpurchaserequisitionstatuts;
                 purchreq.datesubmittion = new Date();
                 purchreq.submittedby = purchaserequisitionChangeStatutDto.matricule;
@@ -129,9 +134,19 @@ export class PurchaserequisitionService {
         // ----------------->>> Approuver la DA.
             if (![Purchaserequisitionstatuts.REVS.toString()].includes(purchreq.refpurchaserequisitionstatuts)) {
                 errormessage = 'le statut '+purchreq.refpurchaserequisitionstatuts+'ne permet pas d\'approuver la DA!';
-            } else {
-                await this.verifyPurchReqLines(purchaserequisitionChangeStatutDto.refpurchaserequisition, purchaserequisitionChangeStatutDto.refcompany,)
 
+            } else {
+                await this.verifyPurchReqLinesToApprove({refpurchaserequisition: purchaserequisitionChangeStatutDto.refpurchaserequisition, refcompany: purchaserequisitionChangeStatutDto.refcompany, refvendor: undefined, id: undefined})
+                const taxeAffectation = await this.purchreqlinesRepository.createQueryBuilder('purchaserequisitionlines')
+                    .select('DISTINCT reftaxe, reftaxegroup')
+                    .where('refpurchaserequisition = :refpurchaserequisition', { refpurchaserequisition :purchaserequisitionChangeStatutDto.refpurchaserequisition })
+                    .andWhere('refcompany = :refcompany', { refcompany: purchaserequisitionChangeStatutDto.refcompany })
+                    //.distinctOn(['reftaxe', 'reftaxegroup'])
+                    .getRawMany();
+                await this.masterdataService.isTaxeAffectationCorrect(
+                    taxeAffectation ,
+                    purchaserequisitionChangeStatutDto.refcompany
+                )
                 purchreq.refpurchaserequisitionstatuts = purchaserequisitionChangeStatutDto.refpurchaserequisitionstatuts;
                 purchreq.dateapprovement = new Date();
                 purchreq.approvedby = purchaserequisitionChangeStatutDto.matricule;
@@ -140,6 +155,7 @@ export class PurchaserequisitionService {
         // ----------------->>> Clôturer la DA.
             if (![Purchaserequisitionstatuts.APRV.toString()].includes(purchreq.refpurchaserequisitionstatuts)) {
                 errormessage = 'le statut '+purchreq.refpurchaserequisitionstatuts+'ne permet pas de clôturer la DA!';
+
             } else {
                 await this.generatePurchaseOrder(purchaserequisitionChangeStatutDto.refpurchaserequisition, purchaserequisitionChangeStatutDto.refcompany)
                 purchreq.refpurchaserequisitionstatuts = purchaserequisitionChangeStatutDto.refpurchaserequisitionstatuts;
@@ -150,6 +166,7 @@ export class PurchaserequisitionService {
         // ----------------->>> Rejeter la DA.
             if (![Purchaserequisitionstatuts.APRV.toString()].includes(purchreq.refpurchaserequisitionstatuts)) {
                 errormessage = 'le statut '+purchreq.refpurchaserequisitionstatuts+'ne permet pas de rejeter la DA!';
+
             } else {
                 purchreq.refpurchaserequisitionstatuts = purchaserequisitionChangeStatutDto.refpurchaserequisitionstatuts;
                 purchreq.daterejection = new Date();
@@ -160,8 +177,6 @@ export class PurchaserequisitionService {
         if(!['', null, undefined].includes(errormessage)) {
             throw new BadRequestException(errormessage, { cause: errormessage, description: errormessage,});
         }
-
-        //console.log(purchreq);
 
         return await this.purchreqRepository
             .save(purchreq)
@@ -182,6 +197,7 @@ export class PurchaserequisitionService {
         if(purchreq) {
             if (purchreq?.refpurchaserequisitionstatuts !== statut) {
                 const message = 'Statut invalide' + purchreq.refpurchaserequisitionstatuts;
+
                 throw new BadRequestException(message, { cause: message, description: message,});
             }
         }
@@ -195,6 +211,7 @@ export class PurchaserequisitionService {
         })
         if (pos.length > 0) {
             const message = 'Purchase order already exist !';
+
             throw new BadRequestException(message, { cause: message, description: message,});
         }
         await this.purchreqlinesRepository
@@ -213,6 +230,8 @@ export class PurchaserequisitionService {
                         refpurchaseorderstatuts: Purchaseorderstatuts.BRLN,
                         refpurchaseorder: await this.masterdataService.generatepk('PO'),
                         refcompany: refcompany,
+                        refcurrency: po.refcurrency,
+                        reftaxegroup: po.reftaxegroup,
                     })
                 }
                 const posEntity = await this.purchorderService.bulkPurchOrder(pos);
@@ -234,6 +253,16 @@ export class PurchaserequisitionService {
                             quantity: prl.quantity,
                             price: prl.price,
                             idheaderparametre: prl.idheaderparametre,
+                            lineamountttcvalue: prl.lineamountttcvalue,
+                            lineamounttvavalue: prl.lineamounttvavalue,
+                            lineamounthtvalue: prl.lineamounthtvalue,
+                            linepricehtvalue: prl.linepricehtvalue,
+                            linepricettcvalue: prl.linepricettcvalue,
+                            discountvalue: prl.discountvalue,
+                            discountpercentage: prl.discountpercentage,
+                            reftaxe: prl.reftaxe,
+                            taxevalue: prl.taxevalue,
+
                         })
                     }
                     await this.purchorderService.bulkPurchOrderLines(pols);
@@ -255,8 +284,9 @@ export class PurchaserequisitionService {
         });
         // ------------------ Verifier Si l'article contient des variantes  -------------------
         //  ---------------  ---------------  ---------------  ---------------  ---------------
-        if (!ptline || [undefined, null, '', NaN].includes(ptline.refitem) ) {
-            const message = 'Ligne de DA introuvable ou article non identifier';
+        if (!ptline) {
+            const message = 'Ligne de DA introuvable';
+
             throw new BadRequestException(message, { cause: message, description: message,});
         } else {
             return ptline;
@@ -270,12 +300,16 @@ export class PurchaserequisitionService {
             .leftJoinAndSelect('item.categoriesaffectation', 'categoriesaffectations')
             .leftJoinAndSelect('item.unitpurch', 'unit unitpurch')
             .leftJoinAndSelect('item.unitinvent', 'unit unitinvent')
+            .leftJoinAndSelect('item.taxepurchase', 'taxe taxeitem')
             .leftJoinAndSelect('purchaserequisitionlines.variant', 'variant')
             .leftJoinAndSelect('variant.headervariant', 'parametresheader')
+            .leftJoinAndSelect('variant.taxepurchase', 'taxe taxevariant')
             .leftJoinAndSelect('parametresheader.parametreslines', 'parametreslines')
             .leftJoinAndSelect('purchaserequisitionlines.vendor', 'vendor')
             .leftJoinAndSelect('vendor.currency', 'currency')
             .leftJoinAndSelect('vendor.vendorgroup', 'vendorgroup')
+            .leftJoinAndSelect('purchaserequisitionlines.taxepurchreqline', 'taxe')
+            .leftJoinAndSelect('purchaserequisitionlines.taxegrouppurchreqline', 'taxegroup')
             .where('purchaserequisitionlines.refcompany = :refcompany', {refcompany: purchaserequisitionlinesFindDto.refcompany})
             .andWhere('purchaserequisitionlines.refpurchaserequisition = :refpurchaserequisition', {refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition})
 
@@ -302,6 +336,7 @@ export class PurchaserequisitionService {
         const linepricetht = ((price - discountvalue) - ((price - discountvalue) * discountpercentage / 100))
         if (linepricetht <= 0.00){
             const message = 'Price line is invalide please chek the price an the discounts !'
+
             throw new BadRequestException(message, { cause: message, description: message,});
         } else {
             return linepricetht;
@@ -309,7 +344,7 @@ export class PurchaserequisitionService {
     }
 
     async upsertPurchReqLinePrice(purchaserequisitionlinesFindDto: PurchaserequisitionLinesPriceUpsertDto){
-        // Validation de statut d'action.
+        // Validation de statut d'action
         await this.isPurchReqStatut(
             {
                 refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
@@ -318,15 +353,57 @@ export class PurchaserequisitionService {
             Purchaserequisitionstatuts.REVS.toString()
         )
 
-        // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
             refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
+        let message = '';
+        if([undefined, null, ''].includes(ptline.refitem)){
+            message = 'Il faut spécifier un item pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        //Validation de vendor.
+        await this.masterdataService.isVendorValid({
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+            refvendor: ptline.refvendor
+        });
+        // Validation d'item
+        await this.itemService.isItemValid({
+                refcompany: purchaserequisitionlinesFindDto.refcompany,
+                refitem: ptline.refitem
+            },
+            'PURCHORDER'
+        );
+        // Validation de variant
+        if(![undefined, null, ''].includes(ptline.refvariant)) {
+            await this.itemService.isVariantValid({
+                    refvariant: ptline.refvariant,
+                    refcompany: purchaserequisitionlinesFindDto.refcompany,
+                    refitem: ptline.refitem
+                },
+                'PURCHORDER'
+            );
+        } else {
+            //Validation d'occurence de variant
+            const countVariantByItem = await this.itemService.isItemHaveVariant({
+                refitem: ptline.refitem,
+                refcompany: purchaserequisitionlinesFindDto.refcompany
+            })
+            if (countVariantByItem > 0) {
+                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+                throw new BadRequestException(message, { cause: message, description: message,});
+            }
+        }
+
         ptline.price = purchaserequisitionlinesFindDto.price;
         ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.linepricettcvalue = (ptline.linepricehtvalue * ptline.taxevalue / 100) + ptline.linepricehtvalue;
         ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
+        ptline.lineamountttcvalue = ptline.linepricettcvalue * ptline.quantity;
+        ptline.lineamounttvavalue = ptline.lineamountttcvalue - ptline.lineamounthtvalue;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -344,7 +421,7 @@ export class PurchaserequisitionService {
     }
 
     async upsertPurchReqLineDiscountValue(purchaserequisitionlinesFindDto: PurchaserequisitionLinesDiscountValueUpsertDto){
-        // Validation de statut d'action.
+        // Validation de statut d'action
         await this.isPurchReqStatut(
             {
                 refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
@@ -353,15 +430,57 @@ export class PurchaserequisitionService {
             Purchaserequisitionstatuts.REVS.toString()
         )
 
-        // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
             refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
+        let message = '';
+        if([undefined, null, ''].includes(ptline.refitem)){
+            message = 'Il faut spécifier un item pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        //Validation de vendor.
+        await this.masterdataService.isVendorValid({
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+            refvendor: ptline.refvendor
+        });
+        // Validation d'item
+        await this.itemService.isItemValid({
+                refcompany: purchaserequisitionlinesFindDto.refcompany,
+                refitem: ptline.refitem
+            },
+            'PURCHORDER'
+        );
+        // Validation de variant
+        if(![undefined, null, ''].includes(ptline.refvariant)) {
+            await this.itemService.isVariantValid({
+                    refvariant: ptline.refvariant,
+                    refcompany: purchaserequisitionlinesFindDto.refcompany,
+                    refitem: ptline.refitem
+                },
+                'PURCHORDER'
+            );
+        } else {
+            //Validation d'occurence de variant
+            const countVariantByItem = await this.itemService.isItemHaveVariant({
+                refitem: ptline.refitem,
+                refcompany: purchaserequisitionlinesFindDto.refcompany
+            })
+            if (countVariantByItem > 0) {
+                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+                throw new BadRequestException(message, { cause: message, description: message,});
+            }
+        }
+
         ptline.discountvalue = purchaserequisitionlinesFindDto.discountvalue;
         ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.linepricettcvalue = (ptline.linepricehtvalue * ptline.taxevalue / 100) + ptline.linepricehtvalue;
         ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
+        ptline.lineamountttcvalue = ptline.linepricettcvalue * ptline.quantity;
+        ptline.lineamounttvavalue = ptline.lineamountttcvalue - ptline.lineamounthtvalue;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -379,7 +498,7 @@ export class PurchaserequisitionService {
     }
 
     async upsertPurchReqLineDiscountPercentage(purchaserequisitionlinesFindDto: PurchaserequisitionLinesDiscountPercentageUpsertDto){
-        // Validation de statut d'action.
+        // Validation de statut d'action
         await this.isPurchReqStatut(
             {
                 refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
@@ -388,15 +507,57 @@ export class PurchaserequisitionService {
             Purchaserequisitionstatuts.REVS.toString()
         )
 
-        // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
             refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
+        let message = '';
+        if([undefined, null, ''].includes(ptline.refitem)){
+            message = 'Il faut spécifier un item pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        //Validation de vendor.
+        await this.masterdataService.isVendorValid({
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+            refvendor: ptline.refvendor
+        });
+        // Validation d'item
+        await this.itemService.isItemValid({
+                refcompany: purchaserequisitionlinesFindDto.refcompany,
+                refitem: ptline.refitem
+            },
+            'PURCHORDER'
+        );
+        // Validation de variant
+        if(![undefined, null, ''].includes(ptline.refvariant)) {
+            await this.itemService.isVariantValid({
+                    refvariant: ptline.refvariant,
+                    refcompany: purchaserequisitionlinesFindDto.refcompany,
+                    refitem: ptline.refitem
+                },
+                'PURCHORDER'
+            );
+        } else {
+            //Validation d'occurence de variant
+            const countVariantByItem = await this.itemService.isItemHaveVariant({
+                refitem: ptline.refitem,
+                refcompany: purchaserequisitionlinesFindDto.refcompany
+            })
+            if (countVariantByItem > 0) {
+                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+                throw new BadRequestException(message, { cause: message, description: message,});
+            }
+        }
+
         ptline.discountpercentage = purchaserequisitionlinesFindDto.discountpercentage;
         ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.linepricettcvalue = (ptline.linepricehtvalue * ptline.taxevalue / 100) + ptline.linepricehtvalue;
         ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
+        ptline.lineamountttcvalue = ptline.linepricettcvalue * ptline.quantity;
+        ptline.lineamounttvavalue = ptline.lineamountttcvalue - ptline.lineamounthtvalue;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -414,7 +575,7 @@ export class PurchaserequisitionService {
     }
 
     async upsertPurchReqLineQty(purchaserequisitionlinesFindDto: PurchaserequisitionLinesQtyUpsertDto){
-        // Validation de statut d'action.
+        // Validation de statut d'action
         await this.isPurchReqStatut(
             {
                 refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
@@ -423,15 +584,47 @@ export class PurchaserequisitionService {
             Purchaserequisitionstatuts.BRLN.toString()
         )
 
-        // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
             refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
+        let message = '';
+        if([undefined, null, ''].includes(ptline.refitem)){
+            message = 'Il faut spécifier un item pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        // Validation d'item
+        await this.itemService.isItemValid({
+                refcompany: purchaserequisitionlinesFindDto.refcompany,
+                refitem: ptline.refitem
+            },
+            'PURCHORDER'
+        );
+        // Validation de variant
+        if(![undefined, null, ''].includes(ptline.refvariant)) {
+            await this.itemService.isVariantValid({
+                    refvariant: ptline.refvariant,
+                    refcompany: purchaserequisitionlinesFindDto.refcompany,
+                    refitem: ptline.refitem
+                },
+                'PURCHORDER'
+            );
+        } else {
+            //Validation d'occurence de variant
+            const countVariantByItem = await this.itemService.isItemHaveVariant({
+                refitem: ptline.refitem,
+                refcompany: purchaserequisitionlinesFindDto.refcompany
+            })
+            if (countVariantByItem > 0) {
+                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+                throw new BadRequestException(message, { cause: message, description: message,});
+            }
+        }
+
         ptline.quantity = purchaserequisitionlinesFindDto.quantity;
-        ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
-        ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -449,7 +642,7 @@ export class PurchaserequisitionService {
     }
 
     async upsertPurchReqLineVariant(purchaserequisitionlinesFindDto: PurchaserequisitionLinesVariantUpsertDto){
-        // Validation de statut d'action.
+        // Validation de statut d'action
         await this.isPurchReqStatut(
             {
                 refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
@@ -458,13 +651,47 @@ export class PurchaserequisitionService {
             Purchaserequisitionstatuts.BRLN.toString()
         )
 
-        // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
             refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
-        ptline.refvariant = purchaserequisitionlinesFindDto.refvariant;
+        let message = '';
+        if([undefined, null, ''].includes(ptline.refitem)){
+            message = 'Il faut spécifier un item pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
+
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        // Validation d'item
+        await this.itemService.isItemValid({
+                refcompany: purchaserequisitionlinesFindDto.refcompany,
+                refitem: ptline.refitem
+            },
+            'PURCHORDER'
+        );
+        // Validation de variant
+        if(![undefined, null, ''].includes(purchaserequisitionlinesFindDto.refvariant)) {
+            await this.itemService.isVariantValid({
+                    refvariant: ptline.refvariant,
+                    refcompany: purchaserequisitionlinesFindDto.refcompany,
+                    refitem: ptline.refitem
+                },
+                'PURCHORDER'
+            );
+        }
+
+        //Variant exist
+        const variantEntity = await this.itemService.findVariant({
+            refvariant: purchaserequisitionlinesFindDto.refvariant,
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+            refitem: ptline.refitem,
+        });
+
+        ptline.refvariant = variantEntity[0].refvariant;
+        ptline.reftaxe = variantEntity[0].reftaxepurchase;
+        const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlinesFindDto.refcompany, reftaxe: variantEntity[0].reftaxepurchase, datedebut: undefined})
+        ptline.taxevalue = taxeline[0].percentage;
+        ptline.idheaderparametre = variantEntity[0].idheaderparametre;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -481,8 +708,8 @@ export class PurchaserequisitionService {
             });
     }
 
-    async savePurchReqLineItem(purchaserequisitionlinesFindDto: PurchaserequisitionLinesItemSaveDto){
-        // Validation de statut d'action.
+    async upsertPurchReqLineItem(purchaserequisitionlinesFindDto: PurchaserequisitionLinesItemUpdateDto){
+        // Validation de statut d'action
         await this.isPurchReqStatut(
             {
                 refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
@@ -491,6 +718,20 @@ export class PurchaserequisitionService {
             Purchaserequisitionstatuts.BRLN.toString()
         )
 
+        const ptline = await this.findPurchReqLinesIfExist({
+            id: purchaserequisitionlinesFindDto.id,
+            refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+        })
+        // Validation d'item
+        await this.itemService.isItemValid({
+                refcompany: purchaserequisitionlinesFindDto.refcompany,
+                refitem: purchaserequisitionlinesFindDto.refitem
+            },
+            'PURCHORDER'
+        );
+
+        // Item vérification
         const itemEntity = await this.itemService.findItem({
             refitem: purchaserequisitionlinesFindDto.refitem,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
@@ -500,52 +741,16 @@ export class PurchaserequisitionService {
             itemdescription: undefined,
         });
 
-        if(!itemEntity) {
-            const message = 'Item introuvable !'
-            throw new BadRequestException(message, { cause: message, description: message,});
-        }
-
-        const ptline = await this.purchreqlinesRepository.create(purchaserequisitionlinesFindDto);
-        ptline['idheaderparametre'] = itemEntity[0]['idheaderparametre'];
-
-        return await this.purchreqlinesRepository
-            .save(ptline)
-            .then(async (res) => {
-                return await this.getPurchReqLines({
-                    refcompany: purchaserequisitionlinesFindDto.refcompany,
-                    refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
-                    id: res.id,
-                    refvendor: undefined,
-                });
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, { cause: err, description: err.query,});
-            });
-    }
-
-    async updatePurchReqLineItem(purchaserequisitionlinesFindDto: PurchaserequisitionLinesItemUpdateDto){
-        // Validation de statut d'action.
-        await this.isPurchReqStatut(
-            {
-                refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
-                refcompany: purchaserequisitionlinesFindDto.refcompany
-            },
-            Purchaserequisitionstatuts.BRLN.toString()
-        )
-
-        // Ligne de DA invalid.
-        const ptline = await this.findPurchReqLinesIfExist({
-            id: purchaserequisitionlinesFindDto.id,
-            refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
-            refcompany: purchaserequisitionlinesFindDto.refcompany,
-        })
         ptline.refvariant = null;
-        ptline.refitem = purchaserequisitionlinesFindDto.refitem;
+        ptline.refitem = itemEntity[0].refitem;
+        ptline.reftaxe = itemEntity[0].reftaxepurchase;
+        const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlinesFindDto.refcompany, reftaxe: itemEntity[0].reftaxepurchase, datedebut: undefined})
+        ptline.taxevalue = taxeline[0].percentage;
+        ptline.idheaderparametre = itemEntity[0].idheaderparametre;
 
         return await this.purchreqlinesRepository
             .save(ptline)
             .then(async (res) => {
-                console.log(res, res.id)
                 return await this.getPurchReqLines({
                     refcompany: purchaserequisitionlinesFindDto.refcompany,
                     refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
@@ -607,15 +812,8 @@ export class PurchaserequisitionService {
             },
             Purchaserequisitionstatuts.REVS.toString()
         )
-
-        //Vendor invalid
+        await this.masterdataService.isVendorValid({ refcompany: purchaserequisitionlinesFindDto.refcompany, refvendor: purchaserequisitionlinesFindDto.refvendor })
         const vendor = await this.masterdataService.getVendor({refcompany: purchaserequisitionlinesFindDto.refcompany, refvendor: purchaserequisitionlinesFindDto.refvendor})
-        console.log(vendor)
-        if(vendor.length != 1 || vendor[0].bloqued === true) {
-            const message = 'invalide Vendor!'
-            throw new BadRequestException(message, { cause: message, description: message,});
-        }
-
         // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
@@ -623,10 +821,9 @@ export class PurchaserequisitionService {
             refcompany: purchaserequisitionlinesFindDto.refcompany,
         })
 
-
-
         ptline.refvendor = purchaserequisitionlinesFindDto.refvendor;
-        ptline.refcurrency = vendor[0].refcurrency
+        ptline.refcurrency = vendor[0].refcurrency;
+        ptline.reftaxegroup = vendor[0].reftaxegroup;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -673,12 +870,25 @@ export class PurchaserequisitionService {
     async initPurchReqLines(refpurchaserequisition, refcompany){
         if([undefined, null, '', 0].includes(refpurchaserequisition) || [undefined, null, '', 0].includes(refcompany)) {
             const message = 'company ou purchase requisition invalide';
+
             throw new BadRequestException(message, { cause: message, description: message,});
         }
         return await this.purchreqlinesRepository
             .createQueryBuilder()
             .update(PurchaserequisitionLinesEntity)
-            .set({ refvendor: null, price: 0, discountpercentage: 0, discountvalue: 0 })
+            .set({
+                refvendor: null,
+                price: 0,
+                discountpercentage: 0,
+                discountvalue: 0,
+                lineamountttcvalue: 0,
+                lineamounttvavalue: 0,
+                linepricettcvalue: 0,
+                reftaxegroup: null,
+                lineamounthtvalue: 0,
+                linepricehtvalue: 0,
+                refcurrency: null
+            })
             .where("refcompany = :refcompany and refpurchaserequisition = :refpurchaserequisition ", { refcompany: refcompany, refpurchaserequisition: refpurchaserequisition })
             .execute()
             .then(async (res) => {
@@ -689,21 +899,167 @@ export class PurchaserequisitionService {
             });
     }
 
-    async verifyPurchReqLines(refpurchaserequisition, refcompany) {
-        if([undefined, null, '', 0].includes(refpurchaserequisition) || [undefined, null, '', 0].includes(refcompany)) {
-            const message = 'company ou purchase requisition invalide';
-            throw new BadRequestException(message, { cause: message, description: message,});
-        }
+    async verifyPurchReqLinesToReview(purchaserequisitionlinesFindDto: PurchaserequisitionLinesFindDto){
+        return await this.purchreqlinesRepository.findBy({
+            refcompany: purchaserequisitionlinesFindDto.refcompany,
+            refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition
+        })
+            .then(async (linesPurchReq) => {
+                const alreadytraiteddata : {refitem: string, refvariant: string}[] = [];
+                let message = '';
+                for(let i = 0; i< linesPurchReq.length; i++) {
+
+                    if ([undefined, null, ''].includes(linesPurchReq[i].refitem)) {
+                        message = 'Il faut spécifier un item pour la ligne achat ' + linesPurchReq[i].id + ' !'
+
+                        throw new BadRequestException(message, {cause: message, description: message,});
+                    }
+
+                    if (linesPurchReq[i].quantity <= 0) {
+                        message = 'Quantité invalide pour la ligne achat ' + linesPurchReq[i].id + ' !'
+
+                        throw new BadRequestException(message, {cause: message, description: message,});
+                    }
+
+                    if (alreadytraiteddata.find(prline => prline.refitem === linesPurchReq[i].refitem && prline.refvariant === linesPurchReq[i].refvariant) == undefined) {
+                        alreadytraiteddata.push({refitem: linesPurchReq[i].refitem, refvariant: linesPurchReq[i].refvariant})
+                        await this.itemService.isItemValid({
+                            refcompany: linesPurchReq[i].refcompany,
+                            refitem: linesPurchReq[i].refitem
+                        }, 'PURCHORDER')
+                        if (![undefined, null, ''].includes(linesPurchReq[i].refvariant)) {
+                            await this.itemService.isVariantValid({
+                                    refvariant: linesPurchReq[i].refvariant,
+                                    refcompany: linesPurchReq[i].refcompany,
+                                    refitem: linesPurchReq[i].refitem
+                                },
+                                'PURCHORDER'
+                            );
+                        } else {
+                            //Validation d'occurence de variant
+                            const countVariantByItem = await this.itemService.isItemHaveVariant({
+                                refitem: linesPurchReq[i].refitem,
+                                refcompany: linesPurchReq[i].refcompany
+                            })
+                            if (countVariantByItem > 0) {
+                                message = 'Il faut spécifier une variante pour la ligne achat ' + linesPurchReq[i].id + ' !'
+
+                                throw new BadRequestException(message, {cause: message, description: message,});
+                            }
+                        }
+                    }
+                }
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+
+    }
+
+    async verifyPurchReqLinesToApprove(purchaserequisitionlinesFindDto: PurchaserequisitionLinesFindDto) {
         await this.purchreqlinesRepository
             .createQueryBuilder('purchaserequisitionlines')
-            .where('refpurchaserequisition = :refpurchaserequisition and refcompany = :refcompany', { refcompany: refcompany, refpurchaserequisition :refpurchaserequisition })
-            .andWhere('(coalesce(quantity, 0) <= 0 or coalesce(price, 0) <= 0 or refvendor is null)')
+            .where('refpurchaserequisition = :refpurchaserequisition and refcompany = :refcompany', { refcompany: purchaserequisitionlinesFindDto.refcompany, refpurchaserequisition :purchaserequisitionlinesFindDto.refpurchaserequisition })
+            .andWhere('(coalesce(quantity, 0) <= 0 or coalesce(price, 0) <= 0 or refvendor is null or reftaxegroup is null or refcurrency is null or reftaxe is null or refitem is null)')
             .getCount()
             .then(async (res) => {
                 if ( res > 0){
                     const message = 'Merci de saisir les quantités, les prix et les fournisseurs de toutes les lignes de DA'
                     throw new BadRequestException(message, { cause: message, description: message,});
                 }
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+
+    async newPurchReqLineItem(purchaserequisitionlinesdDto: PurchaserequisitionLinesNewDto){
+        const purchLine = new PurchaserequisitionLinesEntity()
+        purchLine.refcompany = purchaserequisitionlinesdDto.refcompany;
+        purchLine.refpurchaserequisition = purchaserequisitionlinesdDto.refpurchaserequisition;
+        await this.purchreqlinesRepository
+            .save(purchLine)
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+
+    async updateTaxe(purchaserequisitionlineDto: PurchaserequisitionLinesTaxeUpdateDto) {
+        // Validation de statut d'action
+        await this.isPurchReqStatut(
+            {
+                refpurchaserequisition: purchaserequisitionlineDto.refpurchaserequisition,
+                refcompany: purchaserequisitionlineDto.refcompany
+            },
+            Purchaserequisitionstatuts.REVS.toString()
+        )
+
+        const ptline = await this.findPurchReqLinesIfExist({
+            id: purchaserequisitionlineDto.id,
+            refpurchaserequisition: purchaserequisitionlineDto.refpurchaserequisition,
+            refcompany: purchaserequisitionlineDto.refcompany,
+        })
+        let message = '';
+        if([undefined, null, ''].includes(ptline.refitem)){
+            message = 'Il faut spécifier un item pour la ligne achat '+purchaserequisitionlineDto.id+' !'
+
+            throw new BadRequestException(message, { cause: message, description: message,});
+        }
+        //Validation de vendor.
+        await this.masterdataService.isVendorValid({
+            refcompany: purchaserequisitionlineDto.refcompany,
+            refvendor: ptline.refvendor
+        });
+        // Validation d'item
+        await this.itemService.isItemValid({
+                refcompany: purchaserequisitionlineDto.refcompany,
+                refitem: ptline.refitem
+            },
+            'PURCHORDER'
+        );
+        // Validation de variant
+        if(![undefined, null, ''].includes(ptline.refvariant)) {
+            await this.itemService.isVariantValid({
+                    refvariant: ptline.refvariant,
+                    refcompany: purchaserequisitionlineDto.refcompany,
+                    refitem: ptline.refitem
+                },
+                'PURCHORDER'
+            );
+        } else {
+            //Validation d'occurence de variant
+            const countVariantByItem = await this.itemService.isItemHaveVariant({
+                refitem: ptline.refitem,
+                refcompany: purchaserequisitionlineDto.refcompany
+            })
+            if (countVariantByItem > 0) {
+                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlineDto.id+' !'
+
+                throw new BadRequestException(message, { cause: message, description: message,});
+            }
+        }
+
+        ptline.reftaxe = purchaserequisitionlineDto.reftaxe;
+        const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlineDto.refcompany, reftaxe: purchaserequisitionlineDto.reftaxe, datedebut: undefined})
+        ptline.taxevalue = taxeline[0].percentage;
+        ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
+        ptline.linepricettcvalue = (ptline.linepricehtvalue * ptline.taxevalue / 100) + ptline.linepricehtvalue;
+        ptline.lineamounthtvalue = ptline.linepricehtvalue * ptline.quantity;
+        ptline.lineamountttcvalue = ptline.linepricettcvalue * ptline.quantity;
+        ptline.lineamounttvavalue = ptline.lineamountttcvalue - ptline.lineamounthtvalue;
+
+        return await this.purchreqlinesRepository
+            .save(ptline)
+            .then(async (res) => {
+                return await this.getPurchReqLines({
+                    refcompany: purchaserequisitionlineDto.refcompany,
+                    refpurchaserequisition: purchaserequisitionlineDto.refpurchaserequisition,
+                    id: res.id,
+                    refvendor: undefined,
+                });
             })
             .catch((err) => {
                 throw new BadRequestException(err.message, { cause: err, description: err.query,});

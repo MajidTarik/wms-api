@@ -13,6 +13,8 @@ import {PurchaseorderStatutsEntity} from "./purchaseorder-statuts.entity";
 import {PurchaseorderLinesEntity} from "./purchaseorder-lines.entity";
 import {VendorEntity} from "../masterdata/vendor.entity";
 import {PurchaserequisitionEntity} from "./purchaserequisition.entity";
+import {CurrencyEntity} from "../masterdata/currency.entity";
+import {TaxeGroupEntity} from "../masterdata/taxe-group.entity";
 
 @Entity('purchaseorder')
 export class PurchaseorderEntity {
@@ -30,6 +32,12 @@ export class PurchaseorderEntity {
 
   @Column()
   refpurchaserequisition: string;
+
+  @Column()
+  refcurrency: string;
+
+  @Column()
+  reftaxegroup: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   datetimecreation: Date;
@@ -67,4 +75,17 @@ export class PurchaseorderEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   purchaserequisition: PurchaserequisitionEntity;
+
+  @ManyToOne(() => CurrencyEntity, (currencyentity) => currencyentity.refcurrency, {nullable: true})
+  @JoinColumn([
+    { name: 'refcurrency', referencedColumnName: 'refcurrency' },
+  ])
+  currency: CurrencyEntity;
+
+  @ManyToOne(() => TaxeGroupEntity, (taxegroupEntity) => taxegroupEntity.reftaxegroup, {nullable: false})
+  @JoinColumn([
+    { name: 'reftaxegroup', referencedColumnName: 'reftaxegroup' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxegrouppurchorder: TaxeGroupEntity;
 }

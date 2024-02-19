@@ -14,6 +14,8 @@ import {VariantsEntity} from "../items/variants.entity";
 import {ParametresHeaderEntity} from "../parametres/parametres-header.entity";
 import {VendorEntity} from "../masterdata/vendor.entity";
 import {CurrencyEntity} from "../masterdata/currency.entity";
+import {TaxeEntity} from "../masterdata/taxe.entity";
+import {TaxeGroupEntity} from "../masterdata/taxe-group.entity";
 
 @Entity('purchaserequisitionlines')
 export class PurchaserequisitionLinesEntity {
@@ -29,7 +31,7 @@ export class PurchaserequisitionLinesEntity {
   @Column()
   refcompany: string;
 
-  @Column()
+  @Column({nullable: true})
   refitem: string;
 
   @Column({nullable: true})
@@ -56,8 +58,26 @@ export class PurchaserequisitionLinesEntity {
   @Column({nullable: true})
   idheaderparametre: number;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   refcurrency: string;
+
+  @Column({ nullable: true })
+  reftaxe: string;
+
+  @Column({ nullable: true, type: "decimal", precision: 10, scale: 2, default: 0 })
+  taxevalue: number;
+
+  @Column({ nullable: true, type: "decimal", precision: 10, scale: 2, default: 0 })
+  linepricettcvalue: number;
+
+  @Column({ nullable: true, type: "decimal", precision: 10, scale: 2, default: 0 })
+  lineamountttcvalue: number;
+
+  @Column({ nullable: true, type: "decimal", precision: 10, scale: 2, default: 0 })
+  lineamounttvavalue: number;
+
+  @Column({ nullable: true })
+  reftaxegroup: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   datetimecreation: Date;
@@ -106,4 +126,18 @@ export class PurchaserequisitionLinesEntity {
     { name: 'refcurrency', referencedColumnName: 'refcurrency' },
   ])
   currency: CurrencyEntity;
+
+  @ManyToOne(() => TaxeEntity, (taxeEntity) => taxeEntity.reftaxe, {nullable: false})
+  @JoinColumn([
+    { name: 'reftaxe', referencedColumnName: 'reftaxe' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxepurchreqline: TaxeEntity;
+
+  @ManyToOne(() => TaxeGroupEntity, (taxegroupEntity) => taxegroupEntity.reftaxegroup, {nullable: false})
+  @JoinColumn([
+    { name: 'reftaxegroup', referencedColumnName: 'reftaxegroup' },
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+  ])
+  taxegrouppurchreqline: TaxeGroupEntity;
 }

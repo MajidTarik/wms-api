@@ -453,7 +453,6 @@ export class WhCartographyService {
                       }
                   }
               }
-              console.log('X > OLDX', array)
           }
           if (Y > oldY) {
               for (let i = 1; i <= X; i++) {
@@ -468,7 +467,6 @@ export class WhCartographyService {
                       }
                   }
               }
-              console.log('Y > OLDY', array)
           }
       } else {
           for (let i = 1; i <= X; i++) {
@@ -527,7 +525,6 @@ export class WhCartographyService {
                                   refcompany: res.refcompany,
                                   refaisle: res.refaisle
                               });
-                              console.log(updatedLocation[0]);
                               return updatedLocation[0]
                           }
                       )

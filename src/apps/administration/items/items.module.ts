@@ -13,6 +13,7 @@ import { UomconversionvariantEntity } from "../../../entities/arazan-db/items/uo
 import { CategoriesModule } from "../categories/categories.module";
 import {ItemtrackingEntity} from "../../../entities/arazan-db/items/itemtracking.entity";
 import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entity";
+import {MasterdataModule} from "../masterdata/masterdata.module";
 
 @Module({
   controllers: [
@@ -32,6 +33,7 @@ import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entit
     ]),
     ParametresModule,
     CategoriesModule,
+    MasterdataModule,
   ],
   providers: [ItemsService],
   exports: [ItemsService],

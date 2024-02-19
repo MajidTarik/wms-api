@@ -29,6 +29,7 @@ import {PurchaseorderModule} from "./apps/inventory/purchaseorder/purchaseorder.
       autoLoadEntities: process.env.autoLoadEntities === 'true' ? true : false,
       synchronize: process.env.synchronize === 'true' ? true : false,
       logging: true,
+      //subscribers: [Variant2es],
     }),
     MasterdataModule,
     PurchaserequisitionModule,

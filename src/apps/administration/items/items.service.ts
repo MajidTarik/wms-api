@@ -30,6 +30,11 @@ import {ItemsclassSaveDto} from "./DTO/Itemsclass-save.dto";
 import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entity";
 import {ItemsclassFindDto} from "./DTO/Itemsclass-find.dto";
 import {ItemtrackingEntity} from "../../../entities/arazan-db/items/itemtracking.entity";
+import {IsOptional, IsString} from "class-validator";
+import {ItemsValidityDto} from "./DTO/Items-validity.dto";
+import {MasterdataService} from "../masterdata/masterdata.service";
+import {VariantsValidityDto} from "./DTO/Variants-validity.dto";
+import {ItemsVariantValidityDto} from "./DTO/items-variant-validity.dto";
 
 @Injectable({})
 export class ItemsService {
@@ -54,6 +59,7 @@ export class ItemsService {
     private readonly itemtrackingRepository: Repository<ItemtrackingEntity>,
     private parametreService: ParametresService,
     private categoriesService: CategoriesService,
+    private masterdataService: MasterdataService,
   ) {}
 
   // --------------------------------- Unité
@@ -196,7 +202,6 @@ export class ItemsService {
   }
 
   async findItem(itemfinddto: ItemsFindDto) {
-      console.log('-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-');
     const query = await this.itemRepository
         .createQueryBuilder('item')
         .leftJoinAndSelect(
@@ -257,7 +262,6 @@ export class ItemsService {
   async saveItem(itemdto: ItemsSaveDto) {
     const idheaderparametre = await this.parametreService.checkaxesbycompany(itemdto.parametres, itemdto.refcompany, 'ANALYTIC');
     itemdto['idheaderparametre'] = Number(idheaderparametre);
-    console.log(itemdto);
     const item = await this.itemRepository.create(itemdto);
     return await this.itemRepository
       .save(item)
@@ -368,17 +372,26 @@ export class ItemsService {
   }
   // -------------------------------------- Variant Logistique
   async saveVariant(variantdto: VariantSaveDto) {
-      console.log(variantdto);
     const idheaderparametre = await this.parametreService.checkaxesbycompany(variantdto.parametres, variantdto.refcompany, 'ANALYTIC');
     variantdto['idheaderparametre'] = Number(idheaderparametre);
     const idheadervariant = await this.parametreService.checkaxesbycompany(variantdto.variants, variantdto.refcompany, 'VARIANTLOGISTC');
     variantdto['idheadervariant'] = Number(idheadervariant);
-    console.log('________________________', variantdto)
     const variant = await this.variantRepository.create(variantdto);
     return await this.variantRepository
       .save(variant)
       .then(async (res) => {
-        return res;
+          return await this.itemRepository
+              .createQueryBuilder('items')
+              .update(ItemsEntity)
+              .set({havevariant: true})
+              .where('refitem = :refitem', {refitem: variant.refitem})
+              .execute()
+              .then(async (data) => {
+                  return res;
+              })
+              .catch((err) => {
+                  throw new BadRequestException(err.message, {cause: err, description: err.query,});
+              })
       })
       .catch((err) => {
         throw new BadRequestException(err.message, { cause: err, description: err.query,});
@@ -409,8 +422,7 @@ export class ItemsService {
 
   //---------------------------------------------> Item Class
   async saveItemClass(itemclassDto: ItemsclassSaveDto) {
-    const countVar = await this.itemHaveVariant( itemclassDto.refitem, itemclassDto.refcompany );
-    console.log(countVar, itemclassDto);
+    const countVar = await this.isItemHaveVariant( {refitem: itemclassDto.refitem, refcompany: itemclassDto.refcompany} );
     if ( countVar > 0 && ['', null, undefined].includes(itemclassDto.refvariant) ){
       throw new BadRequestException('Merci de spécifier la variant', { cause: 'Merci de spécifier la variant', description: 'Merci de spécifier la variant',});
     } else {
@@ -437,21 +449,6 @@ export class ItemsService {
             throw new BadRequestException(err.message, { cause: err, description: err.query,});
           });
     }
-  }
-
-  async itemHaveVariant(refitem: string, refcompany: string) {
-    return await this.variantRepository
-        .countBy({
-          refitem: refitem,
-          refcompany: refcompany,
-        })
-        .then(async (res) => {
-          console.log('count variant number',res)
-          return res;
-        })
-        .catch((err) => {
-          throw new BadRequestException(err.message, { cause: err, description: err.query,});
-        });
   }
 
   async getItemClass(itemclassDto: ItemsclassFindDto) {
@@ -488,5 +485,104 @@ export class ItemsService {
           throw new BadRequestException(err.message, { cause: err, description: err.query,});
         });
   }
+
+  async isItemValid(itemDto: ItemsValidityDto, controlObject) {
+      return await this.findItem({
+          refitem: itemDto.refitem,
+          item: undefined,
+          refcompany: itemDto.refcompany,
+          searchname: undefined,
+          barcode: undefined,
+          itemdescription: undefined
+      })
+          .then(async (res) => {
+              let message
+              if(res.length != 1) {
+                  message = 'Item not founded '+itemDto.refitem+' !'
+
+                  throw new BadRequestException(message, { cause: message, description: message,});
+              }
+              if (controlObject === 'PURCHORDER') {
+                  if (res[0].stopedpurch) {
+                      message = 'Item '+itemDto.refitem+' bloqué pour achat!'
+
+                      throw new BadRequestException(message, { cause: message, description: message,});
+                  }
+                  if ([null, undefined].includes(res[0].reftaxepurchase)) {
+                      message = 'Taxe achat non affecté à Item '+itemDto.refitem+' !'
+
+                      throw new BadRequestException(message, { cause: message, description: message,});
+                  } else {
+                      const taxeLineValue = await this.masterdataService.getCurrentTaxeLineValue({refcompany: itemDto.refcompany,reftaxe: res[0].reftaxepurchase, datedebut: undefined})
+                      if(taxeLineValue.length != 1) {
+                          message = 'Valeur de taxe non paramétrée '+res[0].reftaxepurchase+' !'
+
+                          throw new BadRequestException(message, { cause: message, description: message,});
+                      }
+                  }
+              }
+              return res;
+          })
+          .catch((err) => {
+              throw new BadRequestException(err.message, { cause: err, description: err.query,});
+          });
+  }
+
+  async isVariantValid(variantDto: VariantsValidityDto, controlObject) {
+        return await this.findVariant({
+            refitem: variantDto.refitem,
+            refvariant: variantDto.refvariant,
+            refcompany: variantDto.refcompany,
+        })
+            .then(async (res) => {
+                let message;
+                if(res.length != 1) {
+                    message = 'Variant not founded '+variantDto.refvariant+' !'
+
+                    throw new BadRequestException(message, { cause: message, description: message,});
+                }
+                if (controlObject === 'PURCHORDER') {
+                    if (res[0].stopedpurch) {
+                        message = 'Variant bloqué pour achat '+variantDto.refvariant+' !'
+
+                        throw new BadRequestException(message, { cause: message, description: message,});
+                    }
+                    if (res[0].item.stopedpurch) {
+                        message = 'Item '+res[0].item.refitem+' bloqué pour achat!'
+
+                        throw new BadRequestException(message, { cause: message, description: message,});
+                    }
+                    if ([null, undefined].includes(res[0].reftaxepurchase)) {
+                        message = 'Taxe achat non affecté au variant '+variantDto.refvariant+' !'
+
+                        throw new BadRequestException(message, { cause: message, description: message,});
+                    } else {
+                        const taxeLineValue = await this.masterdataService.getCurrentTaxeLineValue({refcompany: variantDto.refcompany,reftaxe: res[0].reftaxepurchase, datedebut: undefined})
+                        if(taxeLineValue.length != 1) {
+                            message = 'Valeur de taxe '+res[0].reftaxepurchase+' non paramétrée!'
+
+                            throw new BadRequestException(message, { cause: message, description: message,});
+                        }
+                    }
+                }
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
+  async isItemHaveVariant(itemVariantDto: ItemsVariantValidityDto) {
+        return await this.variantRepository
+            .countBy({
+                refitem: itemVariantDto.refitem,
+                refcompany: itemVariantDto.refcompany,
+            })
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
+            });
+    }
 
 }

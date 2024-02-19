@@ -149,7 +149,6 @@ export class CategoriesService {
       .leftJoinAndSelect('categoriesgroup.categoriesgroupaffectation', 'categoriesaffectations', 'categoriesaffectations.refentity = :refentity and categoriesaffectations.entity = :entity', {refentity: categoriesAffectation.refentity, entity: categoriesAffectation.entity})
       .getMany()
       .then(async (res) => {
-        console.log('==================>',res);
         let i = 0;
         for await (const grcategories of res) {
           const hierarchyCategories = await this.findHierarchyByGroupCategories({refcategoriesgroup: grcategories['refcategoriesgroup'], refcompany: categoriesAffectation.refcompany, refcategories: undefined})

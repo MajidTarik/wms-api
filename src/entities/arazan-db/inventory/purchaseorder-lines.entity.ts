@@ -42,6 +42,33 @@ export class PurchaseorderLinesEntity {
   @Column({type: "decimal", precision: 10, scale: 2, default: 0})
   price: number;
 
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  lineamountttcvalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  lineamounttvavalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  lineamounthtvalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  linepricehtvalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  linepricettcvalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  discountvalue: number;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  discountpercentage: number;
+
+  @Column({nullable: false})
+  reftaxe: string;
+
+  @Column({type: "decimal", precision: 10, scale: 2, default: 0})
+  taxevalue: number;
+
   @Column({nullable: true})
   idheaderparametre: number;
 

@@ -10,7 +10,6 @@ export class DatesProvider {
         const oneDayInMilliseconds = 24 * 60 * 60 * 1000; // One day in milliseconds
         const differenceInMilliseconds = date2.getTime() - date1.getTime();
         const differenceInDays = Math.floor(differenceInMilliseconds / oneDayInMilliseconds);
-        console.log(differenceInDays);
         return differenceInDays;
     }
 

@@ -87,6 +87,9 @@ export class ItemsEntity {
   @Column({nullable: true})
   reftaxesales: string;
 
+  @Column({default: false})
+  havevariant: boolean;
+
   @Column()
   idheaderparametre: number;
 

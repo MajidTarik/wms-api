@@ -209,7 +209,6 @@ export class MasterdataController {
     @Post('findcontrolobject')
     async findControlobject(@Body() controlobjectDto: ControlobjectFindDto) {
         try {
-            console.log(controlobjectDto)
             return await this.masterdataService.findControlobject(controlobjectDto);
         } catch (e) {
             throw new HttpException(
@@ -228,7 +227,6 @@ export class MasterdataController {
     @Post('findtaxes')
     async findTaxe(@Body() taxeDto: TaxeFindDto) {
         try {
-            console.log(taxeDto)
             return await this.masterdataService.findTaxe(taxeDto);
         } catch (e) {
             throw new HttpException(
@@ -265,7 +263,6 @@ export class MasterdataController {
     @Post('findtaxeline')
     async findTaxeLine(@Body() taxelineDto: TaxeLineFindDto) {
         try {
-            console.log(taxelineDto)
             return await this.masterdataService.findTaxeLine(taxelineDto);
         } catch (e) {
             throw new HttpException(
@@ -339,6 +336,24 @@ export class MasterdataController {
     async saveTaxeGroup(@Body() taxeGroupDto: TaxeGroupSaveDto) {
         try {
             return await this.masterdataService.saveTaxeGroup(taxeGroupDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
+
+    @Post('getaffectedtaxebygroup')
+    async getAffectedTaxeByGroup(@Body() taxeGroupDto: TaxeGroupFindDto) {
+        try {
+            return await this.masterdataService.getAffectedTaxeByGroup(taxeGroupDto);
         } catch (e) {
             throw new HttpException(
                 {

@@ -5,7 +5,7 @@ import {PurchaserequisitionFindDto} from "./DTO/purchaserequisition-find.dto";
 import {CategoriesAffectationDto} from "../../administration/categories/DTO/categories-Affectation.dto";
 import {PurchaserequisitionChangeStatutDto} from "./DTO/purchaserequisition-change-statut.dto";
 import {PurchaserequisitionLinesFindDto} from "./DTO/purchaserequisition-lines-find.dto";
-import {PurchaserequisitionLinesItemSaveDto} from "./DTO/purchaserequisition-lines-item-save.dto";
+import {PurchaserequisitionLinesNewDto} from "./DTO/purchaserequisition-lines-new.dto";
 import {PurchaserequisitionLinesVariantUpsertDto} from "./DTO/purchaserequisition-lines-variant-upsert.dto";
 import {PurchaserequisitionLinesQtyUpsertDto} from "./DTO/purchaserequisition-lines-qty-upsert.dto";
 import {PurchaserequisitionLinesPriceUpsertDto} from "./DTO/purchaserequisition-lines-price-upsert.dto";
@@ -19,6 +19,7 @@ import {
 import {
     PurchaserequisitionLinesDiscountPercentageUpsertDto
 } from "./DTO/purchaserequisition-lines-discount-percentage-upsert.dto";
+import {PurchaserequisitionLinesTaxeUpdateDto} from "./DTO/purchaserequisition-lines-taxe-update.dto";
 
 @Controller('purchaserequisition')
 export class PurchaserequisitionController {
@@ -100,10 +101,10 @@ export class PurchaserequisitionController {
         }
     }
 
-    @Post('savepurchreqlineitem')
-    async savePurchReqLineItem(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesItemSaveDto) {
+    @Post('upsertpurchreqlineitem')
+    async savePurchReqLineItem(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesItemUpdateDto) {
         try {
-            return await this.purchReqService.savePurchReqLineItem(purchaserequisitionlinesFindDto);
+            return await this.purchReqService.upsertPurchReqLineItem(purchaserequisitionlinesFindDto);
         } catch (e) {
             throw new HttpException(
                 {
@@ -208,10 +209,10 @@ export class PurchaserequisitionController {
         }
     }
 
-    @Post('updatepurchreqlineitem')
-    async updatePurchReqLineItem(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesItemUpdateDto) {
+    @Post('newpurchreqlineitem')
+    async newPurchReqLineItem(@Body() purchaserequisitionlinesdDto: PurchaserequisitionLinesNewDto) {
         try {
-            return await this.purchReqService.updatePurchReqLineItem(purchaserequisitionlinesFindDto);
+            return await this.purchReqService.newPurchReqLineItem(purchaserequisitionlinesdDto);
         } catch (e) {
             throw new HttpException(
                 {
@@ -278,5 +279,24 @@ export class PurchaserequisitionController {
                 },
             );
         }
+    }
+
+    @Post('updatetaxe')
+    async updateTaxe(@Body() purchrequisitionlinetaxeDto: PurchaserequisitionLinesTaxeUpdateDto){
+        try {
+            return await this.purchReqService.updateTaxe(purchrequisitionlinetaxeDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+
     }
 }
