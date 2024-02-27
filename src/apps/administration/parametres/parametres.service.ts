@@ -12,6 +12,7 @@ import { ParametresAttributeShowDto } from "./DTO/parametres-attribute-show.dto"
 import { ParametresHeaderEntity } from "../../../entities/arazan-db/parametres/parametres-header.entity";
 import { ParametresLineEntity } from "../../../entities/arazan-db/parametres/parametres-line.entity";
 import { ParametresTypesEntity } from "../../../entities/arazan-db/parametres/parametres-types.entity";
+import {ParametresHeaderFindDto} from "./DTO/parametres-header-find.dto";
 
 @Injectable({})
 export class ParametresService {
@@ -266,5 +267,20 @@ export class ParametresService {
       .catch((err) => {
         throw new BadRequestException(err.message, { cause: err, description: err.query,});
       });
+  }
+
+  async getIdHeaderByParametre(headerparametrerDto: ParametresHeaderFindDto) {
+    return this.checkaxesbycompany(
+        headerparametrerDto.parametres,
+        headerparametrerDto.refcompany,
+        headerparametrerDto.reftypeparametre,
+    )
+        .then( async (res) => {
+          console.log('=====================--------------------->>>>>>>>>>>>>>>>>>>>>>>>>>',res)
+          return res;
+        })
+        .catch((err) => {
+          throw new BadRequestException(err.message, { cause: err, description: err.query,});
+        });
   }
 }

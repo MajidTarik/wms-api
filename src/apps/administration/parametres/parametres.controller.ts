@@ -6,6 +6,7 @@ import { ParametresShowDto } from './DTO/./parametres-show.dto';
 import { ParametresAttributeCreatDto } from './DTO/parametres-attribute-creat.dto';
 import { ParametresAttributeFindDto } from './DTO/parametres-attribute-find.dto';
 import { ParametresAttributeShowDto } from './DTO/parametres-attribute-show.dto';
+import {ParametresHeaderFindDto} from "./DTO/parametres-header-find.dto";
 
 @Controller('parametre')
 export class ParametresController {
@@ -30,7 +31,6 @@ export class ParametresController {
   }
 
   // ----------------------> Parametre
-  /** OK **/
   @Post('createparametre')
   async createParametre(@Body() parametreDto: ParametreCreateDto) {
     try {
@@ -48,7 +48,7 @@ export class ParametresController {
       );
     }
   }
-  /** OK **/
+
   @Post('findparametre')
   async findParametre(@Body() parametreDto: ParametresFindDto) {
     try {
@@ -137,6 +137,24 @@ export class ParametresController {
         {
           cause: e,
         },
+      );
+    }
+  }
+
+  @Post('getidheaderbyparametre')
+  async getIdHeaderByParametre(@Body() attributeDto: ParametresHeaderFindDto) {
+    try {
+      return await this.parametreService.getIdHeaderByParametre(attributeDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
       );
     }
   }
