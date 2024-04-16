@@ -1,6 +1,8 @@
-import {IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString} from "class-validator";
+import { IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
 export class ItemsSaveDto {
-  @IsString() readonly refitem: string;
+  @IsString()
+  @IsOptional()
+  refitem: string;
 
   @IsString() readonly refcompany: string;
 
@@ -72,6 +74,11 @@ export class ItemsSaveDto {
   @IsOptional()
   idheaderparametre: number;
 
-  @IsObject() readonly parametres: object;
-  @IsArray() readonly categories: [];
+  @IsObject()
+  @IsOptional()
+  readonly parametres: object;
+
+  @IsArray()
+  @IsOptional()
+  readonly categories: [];
 }

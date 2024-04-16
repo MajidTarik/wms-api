@@ -2,11 +2,12 @@ import {IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString} from "clas
 import {Abcclass} from "../../../../helpers/abcclass";
 import {
   PurchaserequisitionStatutsEntity
-} from "../../../../entities/arazan-db/inventory/purchaserequisition-statuts.entity";
+} from "../../../../entities/arazan-db/procurement/purchaserequisition-statuts.entity";
 import {Purchaserequisitionstatuts} from "../../../../helpers/purchaserequisitionstatuts";
 export class PurchaserequisitionSaveDto {
   @IsString()
-  readonly refpurchaserequisition: string;
+  @IsOptional()
+  refpurchaserequisition: string;
 
   @IsString()
   readonly refcompany: string;

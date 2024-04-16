@@ -5,9 +5,9 @@ import { PurchaseorderService } from './purchaseorder.service';
 import {ParametresModule} from "../../administration/parametres/parametres.module";
 import {CategoriesModule} from "../../administration/categories/categories.module";
 import {ItemsModule} from "../../administration/items/items.module";
-import {PurchaseorderEntity} from "../../../entities/arazan-db/inventory/purchaseorder.entity";
-import {PurchaseorderStatutsEntity} from "../../../entities/arazan-db/inventory/purchaseorder-statuts.entity";
-import {PurchaseorderLinesEntity} from "../../../entities/arazan-db/inventory/purchaseorder-lines.entity";
+import {PurchaseorderEntity} from "../../../entities/arazan-db/procurement/purchaseorder.entity";
+import {PurchaseorderStatutsEntity} from "../../../entities/arazan-db/procurement/purchaseorder-statuts.entity";
+import {PurchaseorderLinesEntity} from "../../../entities/arazan-db/procurement/purchaseorder-lines.entity";
 import {PurchaserequisitionModule} from "../purchaserequisition/purchaserequisition.module";
 
 @Module({

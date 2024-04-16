@@ -63,18 +63,4 @@ export class TaxeEntity {
     { name: 'refcompany', referencedColumnName: 'refcompany' },
   ])
   taxeitempurchase: ItemsEntity[];
-
-  @OneToMany(() => VariantsEntity, (variantntity) => variantntity.taxesales, { nullable: true })
-  @JoinColumn([
-    { name: 'reftaxe', referencedColumnName: 'reftaxesales' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  taxevariantsales: VariantsEntity[];
-
-  @OneToMany(() => VariantsEntity, (variantntity) => variantntity.taxepurchase, { nullable: true })
-  @JoinColumn([
-    { name: 'reftaxe', referencedColumnName: 'reftaxepurch' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  taxevariantpurchase: VariantsEntity[];
 }

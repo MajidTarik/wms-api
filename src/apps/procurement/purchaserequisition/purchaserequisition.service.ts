@@ -4,11 +4,11 @@ import {Repository} from "typeorm";
 import {PurchaserequisitionSaveDto} from "./DTO/purchaserequisition-save.dto";
 import {PurchaserequisitionFindDto} from "./DTO/purchaserequisition-find.dto";
 import {ParametresService} from "../../administration/parametres/parametres.service";
-import {PurchaserequisitionEntity} from "../../../entities/arazan-db/inventory/purchaserequisition.entity";
+import {PurchaserequisitionEntity} from "../../../entities/arazan-db/procurement/purchaserequisition.entity";
 import {PurchaserequisitionChangeStatutDto} from "./DTO/purchaserequisition-change-statut.dto";
 import {Purchaserequisitionstatuts} from "../../../helpers/purchaserequisitionstatuts";
 import {PurchaserequisitionLinesFindDto} from "./DTO/purchaserequisition-lines-find.dto";
-import {PurchaserequisitionLinesEntity} from "../../../entities/arazan-db/inventory/purchaserequisition-lines.entity";
+import {PurchaserequisitionLinesEntity} from "../../../entities/arazan-db/procurement/purchaserequisition-lines.entity";
 import {PurchaserequisitionLinesPriceUpsertDto} from "./DTO/purchaserequisition-lines-price-upsert.dto";
 import {PurchaserequisitionLinesQtyUpsertDto} from "./DTO/purchaserequisition-lines-qty-upsert.dto";
 import {PurchaserequisitionLinesVariantUpsertDto} from "./DTO/purchaserequisition-lines-variant-upsert.dto";
@@ -75,8 +75,10 @@ export class PurchaserequisitionService {
     }
 
     async savePurchRequisitions(purchaserequisitionSaveDto: PurchaserequisitionSaveDto) {
-        await this.isPurchReqStatut({refpurchaserequisition: purchaserequisitionSaveDto.refpurchaserequisition, refcompany: purchaserequisitionSaveDto.refcompany}, Purchaserequisitionstatuts.BRLN.toString())
+        if ([undefined, null, ''].includes(purchaserequisitionSaveDto.refpurchaserequisition))
+            purchaserequisitionSaveDto.refpurchaserequisition = await this.masterdataService.generatepk('PR');
 
+        await this.isPurchReqStatut({refpurchaserequisition: purchaserequisitionSaveDto.refpurchaserequisition, refcompany: purchaserequisitionSaveDto.refcompany}, Purchaserequisitionstatuts.BRLN.toString())
         const purchreq = await this.purchreqRepository.create(purchaserequisitionSaveDto);
         // -------------------------------------------- Statut Berouillon
         purchreq.refpurchaserequisitionstatuts = Purchaserequisitionstatuts.BRLN.toString();
@@ -685,13 +687,9 @@ export class PurchaserequisitionService {
             refvariant: purchaserequisitionlinesFindDto.refvariant,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
             refitem: ptline.refitem,
+            idheadervariant: undefined,
         });
-
         ptline.refvariant = variantEntity[0].refvariant;
-        ptline.reftaxe = variantEntity[0].reftaxepurchase;
-        const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlinesFindDto.refcompany, reftaxe: variantEntity[0].reftaxepurchase, datedebut: undefined})
-        ptline.taxevalue = taxeline[0].percentage;
-        ptline.idheaderparametre = variantEntity[0].idheaderparametre;
 
         return await this.purchreqlinesRepository
             .save(ptline)

@@ -14,6 +14,7 @@ import { CategoriesModule } from "../categories/categories.module";
 import {ItemtrackingEntity} from "../../../entities/arazan-db/items/itemtracking.entity";
 import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entity";
 import {MasterdataModule} from "../masterdata/masterdata.module";
+import {HelpersProvider} from "../../../helpers/providers/helpers.provider";
 
 @Module({
   controllers: [
@@ -35,7 +36,7 @@ import {MasterdataModule} from "../masterdata/masterdata.module";
     CategoriesModule,
     MasterdataModule,
   ],
-  providers: [ItemsService],
+  providers: [ItemsService, HelpersProvider],
   exports: [ItemsService],
 })
 export class ItemsModule {}

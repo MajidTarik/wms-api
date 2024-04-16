@@ -9,8 +9,8 @@ import * as process from 'process';
 import { WhCartographyModule } from './apps/administration/wh-cartography/wh-cartography.module';
 import { ParametresModule } from './apps/administration/parametres/parametres.module';
 import { MasterdataModule } from './apps/administration/masterdata/masterdata.module';
-import {PurchaserequisitionModule} from "./apps/inventory/purchaserequisition/purchaserequisition.module";
-import {PurchaseorderModule} from "./apps/inventory/purchaseorder/purchaseorder.module";
+import {PurchaserequisitionModule} from "./apps/procurement/purchaserequisition/purchaserequisition.module";
+import {PurchaseorderModule} from "./apps/procurement/purchaseorder/purchaseorder.module";
 
 @Module({
   imports: [

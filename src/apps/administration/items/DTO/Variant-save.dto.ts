@@ -2,7 +2,7 @@ import { IsBoolean, IsNumber, IsObject, IsOptional, IsString } from "class-valid
 export class VariantSaveDto {
   @IsString() readonly refitem: string;
 
-  @IsString() readonly refvariant: string;
+  @IsString() @IsOptional() refvariant: string;
 
   @IsString() readonly refcompany: string;
 
@@ -12,29 +12,15 @@ export class VariantSaveDto {
 
   @IsBoolean() readonly stopedinvent: boolean;
 
-  @IsString() readonly barcode: string;
+  @IsString() @IsOptional() readonly barcode: string;
 
-  @IsNumber() readonly safetystock: number;
+  @IsNumber() @IsOptional() readonly safetystock: number;
 
-  @IsString() readonly variantdescription: string;
+  @IsString() @IsOptional() readonly variantdescription: string;
 
-  @IsString() readonly searchname: string;
+  @IsString() @IsOptional() readonly searchname: string;
 
-  @IsNumber() readonly daystoexpiration: number;
-
-  @IsString()
-  @IsOptional()
-  readonly reftaxesales: string;
-
-  @IsString()
-  @IsOptional()
-  readonly reftaxepurchase: string;
-
-  @IsNumber() @IsOptional() idheaderparametre: number;
-
-  @IsObject() readonly parametres: object;
-
-  @IsNumber() @IsOptional() idheadervariant: number;
+  @IsNumber() idheadervariant: number;
 
   @IsObject() readonly variants: object;
 }

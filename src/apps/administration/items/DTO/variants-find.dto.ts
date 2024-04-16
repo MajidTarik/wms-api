@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import {IsNumber, IsOptional, IsString} from 'class-validator';
 export class VariantsFindDto {
   @IsString()
   @IsOptional()
@@ -10,4 +10,8 @@ export class VariantsFindDto {
   @IsString()
   @IsOptional()
   readonly refvariant: string;
+
+  @IsNumber()
+  @IsOptional()
+  readonly idheadervariant: number;
 }

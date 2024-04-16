@@ -2,12 +2,12 @@ import {BadRequestException, Injectable} from '@nestjs/common';
 import {ParametresService} from "../../administration/parametres/parametres.service";
 import {ItemsService} from "../../administration/items/items.service";
 import {InjectRepository} from "@nestjs/typeorm";
-import {PurchaserequisitionEntity} from "../../../entities/arazan-db/inventory/purchaserequisition.entity";
+import {PurchaserequisitionEntity} from "../../../entities/arazan-db/procurement/purchaserequisition.entity";
 import {Repository} from "typeorm";
-import {PurchaseorderEntity} from "../../../entities/arazan-db/inventory/purchaseorder.entity";
+import {PurchaseorderEntity} from "../../../entities/arazan-db/procurement/purchaseorder.entity";
 import {PurchaserequisitionService} from "../purchaserequisition/purchaserequisition.service";
 import {IsNumber, IsOptional, IsString} from "class-validator";
-import {PurchaseorderLinesEntity} from "../../../entities/arazan-db/inventory/purchaseorder-lines.entity";
+import {PurchaseorderLinesEntity} from "../../../entities/arazan-db/procurement/purchaseorder-lines.entity";
 import {PurchaseorderFindDto} from "./DTO/purchaseorder-find.dto";
 
 @Injectable()

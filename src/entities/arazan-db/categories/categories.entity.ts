@@ -11,7 +11,7 @@ import {
 import { CompanyEntity } from '../cartography/company.entity';
 import { CategoriesgroupEntity } from "./categoriesgroup.entity";
 import { CategoriesaffectationsEntity } from "./categoriesaffectations.entity";
-import {PurchaserequisitionLinesEntity} from "../inventory/purchaserequisition-lines.entity";
+import {PurchaserequisitionLinesEntity} from "../procurement/purchaserequisition-lines.entity";
 
 @Entity('categories')
 export class CategoriesEntity {

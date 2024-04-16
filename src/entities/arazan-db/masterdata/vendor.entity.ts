@@ -28,73 +28,73 @@ export class VendorEntity {
   @PrimaryColumn()
   refcompany: string;
 
-  @Column({nullable: false})
+  @Column({ nullable: false })
   refvendortype: string;
 
-  @Column()
+  @Column({ nullable: true })
   prenom: string;
 
-  @Column()
+  @Column({ nullable: true })
   nom: string;
 
-  @Column({nullable: false})
+  @Column({ nullable: true })
   refvendorgroup: string;
 
-  @Column()
+  @Column({ nullable: true })
   ice: string;
 
-  @Column()
+  @Column({ nullable: true })
   if: string;
 
-  @Column()
+  @Column({ nullable: true })
   rc: string;
 
-  @Column()
+  @Column({ nullable: true })
   patente: string;
 
-  @Column()
+  @Column({ nullable: true })
   cnss: string;
 
-  @Column()
+  @Column({ nullable: true })
   ncin: string;
 
-  @Column()
+  @Column({ nullable: true })
   adresse: string;
 
-  @Column()
+  @Column({ nullable: true })
   contactdescription: string;
 
-  @Column()
+  @Column({ nullable: true })
   contactmail: string;
 
-  @Column()
+  @Column({ nullable: true })
   contacttelephone: string;
 
-  @Column({nullable: false})
+  @Column({ nullable: true })
   refcurrency: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   refvendorinvoicing: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   refdeliverymode: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   refpaymentcondition: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   refpaymentmethod: string;
 
-  @Column()
+  @Column({ nullable: true })
   idheaderparametre: number;
 
-  @Column({nullable: false})
+  @Column({ nullable: true })
   reflanguage: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   reftaxegroup: string;
 
-  @Column()
+  @Column({ default: false })
   bloqued: boolean;
 
   @CreateDateColumn({ type: 'timestamptz' })
@@ -103,7 +103,7 @@ export class VendorEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
   @JoinColumn({ name: 'refcompany' })
   company: CompanyEntity;
 
@@ -111,25 +111,25 @@ export class VendorEntity {
   @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
   headerparametre: ParametresHeaderEntity;
 
-  @ManyToOne(() => CurrencyEntity, (currencyentity) => currencyentity.refcurrency, {nullable: false})
+  @ManyToOne(() => CurrencyEntity, (currencyentity) => currencyentity.refcurrency, { nullable: false })
   @JoinColumn([
     { name: 'refcurrency', referencedColumnName: 'refcurrency' },
   ])
   currency: CurrencyEntity;
 
-  @ManyToOne(() => VendortypeEntity, (vendortypeentity) => vendortypeentity.refvendortype, {nullable: false})
+  @ManyToOne(() => VendortypeEntity, (vendortypeentity) => vendortypeentity.refvendortype, { nullable: false })
   @JoinColumn([
     { name: 'refvendortype', referencedColumnName: 'refvendortype' },
   ])
   vendortype: VendortypeEntity;
 
-  @ManyToOne(() => LanguageEntity, (languageentity) => languageentity.reflanguage, {nullable: false})
+  @ManyToOne(() => LanguageEntity, (languageentity) => languageentity.reflanguage, { nullable: false })
   @JoinColumn([
     { name: 'reflanguage', referencedColumnName: 'reflanguage' },
   ])
   language: LanguageEntity;
 
-  @ManyToOne(() => VendorgroupEntity, (vendorgroupentity) => vendorgroupentity.refvendorgroup, {nullable: false})
+  @ManyToOne(() => VendorgroupEntity, (vendorgroupentity) => vendorgroupentity.refvendorgroup, { nullable: false })
   @JoinColumn([
     { name: 'refvendorgroup', referencedColumnName: 'refvendorgroup' },
     { name: 'refcompany', referencedColumnName: 'refcompany' },

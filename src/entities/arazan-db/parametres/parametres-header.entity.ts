@@ -50,10 +50,6 @@ export class ParametresHeaderEntity {
   @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
   sitesgeographic: SitegeographyEntity[];
 
-  @OneToMany(() => VariantsEntity, (variantsentity) => variantsentity.headerparametre, { nullable: false })
-  @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
-  variants: VariantsEntity[];
-
   @ManyToOne(() => ParametresTypesEntity, (parametrestypesentity) => parametrestypesentity.parametres, {nullable: false})
   @JoinColumn({ name: 'reftypeparametre' })
   parametrestype: ParametresTypesEntity;

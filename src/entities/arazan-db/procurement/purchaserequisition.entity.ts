@@ -29,7 +29,7 @@ export class PurchaserequisitionEntity {
   @Column()
   preparator: string;
 
-  @Column()
+  @Column({ nullable: true })
   requisitionobjectif: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
@@ -62,10 +62,10 @@ export class PurchaserequisitionEntity {
   @Column({nullable: true})
   daterejection: Date;
 
-  @Column({ length: 256 })
+  @Column({ length: 256, nullable: true })
   description: string;
 
-  @Column()
+  @Column({ default: true })
   actif: boolean;
 
   @CreateDateColumn({ type: 'timestamptz' })

@@ -145,7 +145,7 @@ export class CategoriesService {
   async findCategoriesByEntity(categoriesAffectation: CategoriesAffectationDto) {
     return await this.categoriesGroupRepository
       .createQueryBuilder('categoriesgroup')
-      .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.refcontrolobject = :refcontrolobject', {refcontrolobject: categoriesAffectation.refcontrolobject})
+      .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.refcontrolobject = :refcontrolobject and okforgroupcategories = true', {refcontrolobject: categoriesAffectation.refcontrolobject})
       .leftJoinAndSelect('categoriesgroup.categoriesgroupaffectation', 'categoriesaffectations', 'categoriesaffectations.refentity = :refentity and categoriesaffectations.entity = :entity', {refentity: categoriesAffectation.refentity, entity: categoriesAffectation.entity})
       .getMany()
       .then(async (res) => {
@@ -163,12 +163,12 @@ export class CategoriesService {
       });
   }
 
-  async affectationItemCategories(categories, refcompany, refitem) {
+  async affectationEntityCategories(categories, refcompany, refentity, entity) {
     let i = 0;
     for await (const catego of categories) {
       categories[i]['refcompany'] = refcompany;
-      categories[i]['refentity'] = refitem;
-      categories[i]['entity'] = 'ITEM';
+      categories[i]['refentity'] = refentity;
+      categories[i]['entity'] = entity;
       categories[i]['actif'] = true;
       i++;
     }

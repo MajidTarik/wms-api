@@ -26,19 +26,19 @@ export class CompanyEntity {
   @PrimaryColumn()
   refcompany: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   refcurrency: string;
 
   @Column()
   company: string;
 
-  @Column()
+  @Column({ nullable: true })
   tel1: string;
 
-  @Column()
+  @Column({ nullable: true })
   email1: string;
 
-  @Column()
+  @Column({ nullable: true })
   responsable1: string;
 
   @Column({nullable: true})

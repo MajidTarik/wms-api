@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -16,6 +17,11 @@ import {ItemsEntity} from "../items/items.entity";
 
 @Entity('categoriesaffectations')
 export class CategoriesaffectationsEntity {
+  @BeforeInsert()
+  beforeInsertNewAffectation() {
+    console.log('I am a new insert ')
+  }
+
   @PrimaryColumn()
   refcategoriesgroup: string;
 
