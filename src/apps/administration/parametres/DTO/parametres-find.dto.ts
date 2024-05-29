@@ -12,6 +12,9 @@ export class ParametresFindDto {
   @IsString()
   readonly refcompany: string;
 
+  @IsString()
+  readonly reforganisation: string;
+
   @IsNumber()
   @IsOptional()
   readonly idheaderparametre: number;

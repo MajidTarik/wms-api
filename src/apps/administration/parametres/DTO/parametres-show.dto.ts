@@ -5,4 +5,7 @@ export class ParametresShowDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 }

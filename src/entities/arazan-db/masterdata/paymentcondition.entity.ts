@@ -5,9 +5,10 @@ import {
   OneToMany,
   PrimaryColumn
 } from 'typeorm';
-import { VendorEntity } from './vendor.entity';
 import { CompanyEntity } from "../cartography/company.entity";
 import { Modepaiment } from "../../../helpers/modepaiment";
+import {OrganisationEntity} from "../cartography/organisation.entity";
+import {VendorreleasedEntity} from "./vendorreleased.entity";
 
 @Entity('paymentcondition')
 export class PaymentconditionEntity {
@@ -29,14 +30,27 @@ export class PaymentconditionEntity {
   @PrimaryColumn()
   refcompany: string;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
+  @PrimaryColumn()
+  reforganisation: string;
+
+  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+  @JoinColumn([
+    { name: 'refcompany', referencedColumnName: 'refcompany'},
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
   company: CompanyEntity;
 
-  @OneToMany(() => VendorEntity, (vendorentity) => vendorentity.refpaymentcondition)
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
+
+  @OneToMany(() => VendorreleasedEntity, (vendorentity) => vendorentity.refpaymentcondition)
   @JoinColumn([
     { name: 'refpaymentcondition', referencedColumnName: 'refpaymentcondition' },
     { name: 'refcompany', referencedColumnName: 'refcompany' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
-  vendors: VendorEntity[];
+  vendors: VendorreleasedEntity[];
 }

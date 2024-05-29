@@ -1,20 +1,24 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
-import { UserEntity } from "../users/user.entity";
 import { CompanyEntity } from "./company.entity";
 import { Abcclass } from "../../../helpers/abcclass";
 import {AisleEntity} from "./aisle.entity";
+import {OrganisationEntity} from "./organisation.entity";
 
 @Entity('location')
 export class LocationEntity {
   @PrimaryColumn({ length: 20 })
   reflocation: string;
+
   @PrimaryColumn()
   refcompany: string;
+
+  @PrimaryColumn()
+  reforganisation: string;
 
   @Column({default: true})
   actif: boolean;
 
-  @Column()
+  @PrimaryColumn()
   refaisle: string;
 
   @Column({default: 0})
@@ -67,13 +71,23 @@ export class LocationEntity {
   datetimelastupdate: Date;
 
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
+  @JoinColumn([
+    {name: 'refcompany', referencedColumnName: 'refcompany' },
+    {name: 'reforganisation', referencedColumnName: 'reforganisation' },
+  ])
   company: CompanyEntity;
+
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, { nullable: false })
+  @JoinColumn([
+    {name: 'reforganisation', referencedColumnName: 'reforganisation' },
+  ])
+  organisation: OrganisationEntity;
 
   @ManyToOne(() => AisleEntity, (Aisleentity) => Aisleentity.refaisle, { nullable: false })
   @JoinColumn([
     { name: 'refaisle', referencedColumnName: 'refaisle' },
     { name: 'refcompany', referencedColumnName: 'refcompany' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation' },
   ])
   aisle: AisleEntity;
 }

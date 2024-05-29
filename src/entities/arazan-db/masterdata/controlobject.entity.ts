@@ -6,7 +6,6 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import {CategoriesgroupEntity} from "../categories/categoriesgroup.entity";
-import {CategoriesEntity} from "../categories/categories.entity";
 
 @Entity('controlobject')
 export class ControlobjectEntity {
@@ -21,6 +20,9 @@ export class ControlobjectEntity {
 
   @Column({default: false})
   okforworkflows: boolean;
+
+  @Column({default: false})
+  okforaddress: boolean;
 
   @Column({default: false})
   generatedpk: boolean;

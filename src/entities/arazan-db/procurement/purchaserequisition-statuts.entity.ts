@@ -1,16 +1,10 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
+  OneToMany,
   PrimaryColumn,
-  UpdateDateColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
-import { CompanyEntity } from '../cartography/company.entity';
-import {VendorEntity} from "../masterdata/vendor.entity";
 import {PurchaserequisitionEntity} from "./purchaserequisition.entity";
 
 @Entity('purchaserequisitionstatuts')

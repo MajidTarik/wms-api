@@ -1,12 +1,11 @@
 import {
   Column,
   Entity,
-  JoinColumn, ManyToOne,
+  JoinColumn,
   OneToMany,
   PrimaryColumn
 } from 'typeorm';
 import { VendorEntity } from './vendor.entity';
-import { CompanyEntity } from "../cartography/company.entity";
 
 @Entity('vendortype')
 export class VendortypeEntity {

@@ -1,10 +1,6 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsString } from "class-validator";
 export class CategoriesAffectationDto {
-  @IsString() readonly entity: string;
-
+  @IsString() readonly refObject: string;
   @IsString() readonly refcompany: string;
-
-  @IsString() readonly refentity: string;
-
-  @IsString() readonly refcontrolobject: string;
+  @IsString() readonly prefix: string;
 }

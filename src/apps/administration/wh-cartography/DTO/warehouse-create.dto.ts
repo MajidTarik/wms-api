@@ -3,7 +3,6 @@ import { IsBoolean, IsNumber, IsObject, IsOptional, IsString, MaxLength, MinLeng
 export class WarehouseCreateDto {
   @IsString()
   @MinLength(2)
-  @MaxLength(5)
   readonly refwarehouse: string;
 
   @IsString()
@@ -18,15 +17,16 @@ export class WarehouseCreateDto {
   refcompany: string;
 
   @IsString()
+  reforganisation: string;
+
+  @IsString()
   refsitegeographic: string;
 
   @IsObject()
+  @IsOptional()
   parametres: object;
 
   @IsOptional()
   @IsNumber()
   idheaderparametre: number;
-
-  @IsString()
-  reftypeparametre: string;
 }

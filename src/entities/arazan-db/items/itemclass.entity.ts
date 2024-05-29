@@ -1,76 +1,73 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn, Unique, PrimaryGeneratedColumn
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    UpdateDateColumn, Unique, PrimaryColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
-import { CompanyEntity } from '../cartography/company.entity';
-import { VariantsEntity } from './variants.entity';
-import { ItemsEntity } from './items.entity';
-import { WarehouseEntity } from '../cartography/warehouse.entity';
-import { Abcclass } from '../../../helpers/abcclass';
+import {CompanyEntity} from '../cartography/company.entity';
+import {WarehouseEntity} from '../cartography/warehouse.entity';
+import {Abcclass} from '../../../helpers/abcclass';
+import {OrganisationEntity} from "../cartography/organisation.entity";
+import {ItemsreleasedEntity} from "./itemsreleased.entity";
 
 @Entity('itemclass')
-@Unique(['refitem', 'refvariant', 'refcompany', 'refwarehouse'])
 export class ItemclassEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryColumn()
+    refitem: string;
 
-  @Column()
-  refitem: string;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @Column({ nullable: true })
-  refvariant: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @Column()
-  refcompany: string;
+    @PrimaryColumn()
+    refwarehouse: string;
 
-  @Column()
-  refwarehouse: string;
+    @Column({
+        type: 'enum',
+        enum: Abcclass,
+        default: Abcclass.NONE,
+    })
+    class: Abcclass;
 
-  @Column({
-    type: 'enum',
-    enum: Abcclass,
-    default: Abcclass.NONE,
-  })
-  class: Abcclass;
+    @Column({default: true})
+    actif: boolean;
 
-  @Column({default: true})
-  actif: boolean;
+    @CreateDateColumn({type: 'timestamptz'})
+    datetimecreation: Date;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  datetimecreation: Date;
+    @UpdateDateColumn({type: 'timestamptz'})
+    datetimelastupdate: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  datetimelastupdate: Date;
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
-  @JoinColumn({ name: 'refcompany' })
-  company: CompanyEntity;
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
 
-  @ManyToOne(() => ItemsEntity, (itemsentity) => itemsentity.refitem, {nullable: false})
-  @JoinColumn([
-    { name: 'refitem', referencedColumnName: 'refitem' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  item: ItemsEntity;
+    @ManyToOne(() => ItemsreleasedEntity, (itemsreleased) => itemsreleased.refitem, {nullable: false})
+    @JoinColumn([
+        {name: 'refitem', referencedColumnName: 'refitem'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    itemrealsed: ItemsreleasedEntity;
 
-  @ManyToOne(() => WarehouseEntity, (warehouseentity) => warehouseentity.refwarehouse, {nullable: false})
-  @JoinColumn([
-    { name: 'refwarehouse', referencedColumnName: 'refwarehouse' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  warehouse: WarehouseEntity;
-
-  @ManyToOne(() => VariantsEntity, (variantsentity) => variantsentity.refvariant)
-  @JoinColumn([
-    { name: 'refvariant', referencedColumnName: 'refvariant' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  variant: VariantsEntity;
+    @ManyToOne(() => WarehouseEntity, (warehouseentity) => warehouseentity.refwarehouse, {nullable: false})
+    @JoinColumn([
+        {name: 'refwarehouse', referencedColumnName: 'refwarehouse'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    warehouse: WarehouseEntity;
 }

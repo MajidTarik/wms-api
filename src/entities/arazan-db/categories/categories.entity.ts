@@ -1,77 +1,105 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn, ManyToMany,
-  ManyToOne, OneToMany,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn, ManyToMany,
+    ManyToOne, OneToMany,
+    OneToOne,
+    PrimaryColumn,
+    UpdateDateColumn,
 } from "typeorm";
-import { CompanyEntity } from '../cartography/company.entity';
-import { CategoriesgroupEntity } from "./categoriesgroup.entity";
-import { CategoriesaffectationsEntity } from "./categoriesaffectations.entity";
-import {PurchaserequisitionLinesEntity} from "../procurement/purchaserequisition-lines.entity";
+import {CompanyEntity} from '../cartography/company.entity';
+import {CategoriesgroupEntity} from "./categoriesgroup.entity";
+import {CategoriesitemsEntity} from "./categoriesitems.entity";
+import {CategoriesvendorsEntity} from "./categoriesvendors.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('categories')
 export class CategoriesEntity {
-  @PrimaryColumn()
-  refcategoriesgroup: string;
+    @PrimaryColumn()
+    refcategoriesgroup: string;
 
-  @PrimaryColumn()
-  refcategories: string;
+    @PrimaryColumn()
+    refcategories: string;
 
-  @PrimaryColumn()
-  refcompany: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @Column({ nullable: true })
-  refparentcategoriesgroup: string;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @Column({ nullable: true })
-  refparentcategories: string;
+    @Column({nullable: true})
+    refparentcategoriesgroup: string;
 
-  @Column({ nullable: true })
-  refparentcompany: string;
+    @Column({nullable: true})
+    refparentcategories: string;
 
-  @Column()
-  category: string;
+    @Column({nullable: true})
+    refparentcompany: string;
 
-  @Column()
-  level: string;
+    @Column({nullable: true})
+    refparentorganisation: string;
 
-  @Column()
-  actif: boolean;
+    @Column()
+    category: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  datetimecreation: Date;
+    @Column()
+    level: string;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  datetimelastupdate: Date;
+    @Column()
+    actif: boolean;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
-  company: CompanyEntity;
+    @CreateDateColumn({type: 'timestamptz'})
+    datetimecreation: Date;
 
-  @ManyToOne(() => CategoriesEntity, (categoriesentity) => categoriesentity.parentcategory, { nullable: true })
-  @JoinColumn([
-    { name: 'refparentcategoriesgroup', referencedColumnName: 'refcategoriesgroup' },
-    { name: 'refparentcategories', referencedColumnName: 'refcategories' },
-    { name: 'refparentcompany', referencedColumnName: 'refcompany' },
-  ])
-  parentcategory: CategoriesEntity;
+    @UpdateDateColumn({type: 'timestamptz'})
+    datetimelastupdate: Date;
 
-  @OneToMany(() => CategoriesaffectationsEntity, (categoriesaffectationsentity) => categoriesaffectationsentity.category)
-  @JoinColumn([
-    { name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup' },
-    { name: 'refcategories', referencedColumnName: 'refcategories' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  categoryAffectations: CategoriesaffectationsEntity[];
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @ManyToOne(() => CategoriesgroupEntity, (categoriesgroupentity) => categoriesgroupentity.categories, { nullable: false })
-  @JoinColumn([
-    { name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  categorygroup: CategoriesgroupEntity;
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
+
+    @ManyToOne(() => CategoriesEntity, (categoriesentity) => categoriesentity.parentcategory, {nullable: true})
+    @JoinColumn([
+        {name: 'refparentcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
+        {name: 'refparentcategories', referencedColumnName: 'refcategories'},
+        {name: 'refparentcompany', referencedColumnName: 'refcompany'},
+        {name: 'refparentorganisation', referencedColumnName: 'reforganisation'},
+    ])
+    parentcategory: CategoriesEntity;
+
+    @OneToMany(() => CategoriesitemsEntity, (categoriesitemsentity) => categoriesitemsentity.category)
+    @JoinColumn([
+        {name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
+        {name: 'refcategories', referencedColumnName: 'refcategories'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    categoriesitems: CategoriesitemsEntity[];
+
+    @OneToMany(() => CategoriesvendorsEntity, (categoriesvendorsentity) => categoriesvendorsentity.categories)
+    @JoinColumn([
+        {name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
+        {name: 'refcategories', referencedColumnName: 'refcategories'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    categoriesvendors: CategoriesvendorsEntity[];
+
+    @ManyToOne(() => CategoriesgroupEntity, (categoriesgroupentity) => categoriesgroupentity.categories, {nullable: false})
+    @JoinColumn([
+        {name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    categorygroup: CategoriesgroupEntity;
 }

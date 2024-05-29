@@ -17,5 +17,8 @@ export class ParametreCreateDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   readonly reftypeparametre: string;
 }

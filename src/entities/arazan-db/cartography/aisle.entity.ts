@@ -1,97 +1,108 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
-import { UserEntity } from "../users/user.entity";
-import { CompanyEntity } from "./company.entity";
-import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
-import { WarehouseEntity } from "./warehouse.entity";
+import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn} from "typeorm";
+import {CompanyEntity} from "./company.entity";
 import {FurnituretypeEntity} from "./furnituretype.entity";
 import {AreaEntity} from "./area.entity";
 import {Typelocationposition} from "../../../helpers/typelocationposition";
 import {Typeseprator} from "../../../helpers/typeseprator";
+import {OrganisationEntity} from "./organisation.entity";
 
 @Entity('aisle')
 export class AisleEntity {
-  @PrimaryColumn({ length: 12 })
-  refaisle: string;
+    @PrimaryColumn({length: 12})
+    refaisle: string;
 
-  @Column()
-  refarea: string;
+    @Column()
+    refarea: string;
 
-  @PrimaryColumn()
-  refcompany: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @Column()
-  aisle: string;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @Column()
-  reffurnituretype: string;
+    @Column()
+    aisle: string;
 
-  @Column()
-  xshelf: number;
+    @Column()
+    reffurnituretype: string;
 
-  @Column({
-    type: 'enum',
-    enum: Typelocationposition,
-    default: Typelocationposition.CHAR,
-  })
-  xtype: Typelocationposition;
+    @Column()
+    xshelf: number;
 
-  @Column()
-  yfloor: number;
+    @Column({
+        type: 'enum',
+        enum: Typelocationposition,
+        default: Typelocationposition.CHAR,
+    })
+    xtype: Typelocationposition;
 
-  @Column({
-    type: 'enum',
-    enum: Typelocationposition,
-    default: Typelocationposition.CHAR,
-  })
-  ytype: Typelocationposition;
+    @Column()
+    yfloor: number;
 
-  @Column()
-  zsection: number;
+    @Column({
+        type: 'enum',
+        enum: Typelocationposition,
+        default: Typelocationposition.CHAR,
+    })
+    ytype: Typelocationposition;
 
-  @Column({
-    type: 'enum',
-    enum: Typelocationposition,
-    default: Typelocationposition.CHAR,
-  })
-  ztype: Typelocationposition;
+    @Column()
+    zsection: number;
 
-  @Column()
-  prefix: string;
+    @Column({
+        type: 'enum',
+        enum: Typelocationposition,
+        default: Typelocationposition.CHAR,
+    })
+    ztype: Typelocationposition;
 
-  @Column({
-    type: 'enum',
-    enum: Typeseprator,
-    default: Typeseprator.DASH,
-  })
-  separator: Typeseprator;
+    @Column()
+    prefix: string;
 
-  @Column()
-  actif: boolean;
+    @Column({
+        type: 'enum',
+        enum: Typeseprator,
+        default: Typeseprator.DASH,
+    })
+    separator: Typeseprator;
 
-  @Column()
-  heightseparator: number;
+    @Column()
+    actif: boolean;
 
-  @Column()
-  widthseparator: number;
+    @Column()
+    heightseparator: number;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  datetimecreation: Date;
+    @Column()
+    widthseparator: number;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  datetimelastupdate: Date;
+    @CreateDateColumn({type: 'timestamptz'})
+    datetimecreation: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
-  company: CompanyEntity;
+    @UpdateDateColumn({type: 'timestamptz'})
+    datetimelastupdate: Date;
 
-  @ManyToOne(() => FurnituretypeEntity, (furnituretypeentity) => furnituretypeentity.reffurnituretype, { nullable: false })
-  @JoinColumn([{ name: 'reffurnituretype', referencedColumnName: 'reffurnituretype' }])
-  furnituretype: FurnituretypeEntity;
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @ManyToOne(() => AreaEntity, (areaentity) => areaentity.refarea, { nullable: false })
-  @JoinColumn([
-      { name: 'refarea', referencedColumnName: 'refarea' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  area: AreaEntity;
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
+
+    @ManyToOne(() => FurnituretypeEntity, (furnituretypeentity) => furnituretypeentity.reffurnituretype, {nullable: false})
+    @JoinColumn([{name: 'reffurnituretype', referencedColumnName: 'reffurnituretype'}])
+    furnituretype: FurnituretypeEntity;
+
+    @ManyToOne(() => AreaEntity, (areaentity) => areaentity.refarea, {nullable: false})
+    @JoinColumn([
+        {name: 'refarea', referencedColumnName: 'refarea'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    area: AreaEntity;
 }

@@ -12,6 +12,9 @@ export class ParametresAttributeCreatDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   readonly refparametre: string;
 
   @IsBoolean()

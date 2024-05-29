@@ -2,8 +2,8 @@ import { IsBoolean, IsNumber, IsObject, IsOptional, IsString, MaxLength, MinLeng
 
 export class AreaCreateDto {
   @IsString()
+  @IsOptional()
   @MinLength(2)
-  @MaxLength(5)
   readonly refarea: string;
 
   @IsString()
@@ -18,15 +18,8 @@ export class AreaCreateDto {
   readonly refcompany: string;
 
   @IsString()
-  readonly refwarehouse: string;
-
-  @IsObject()
-  readonly parametres: object;
-
-  @IsOptional()
-  @IsNumber()
-  idheaderparametre: number;
+  readonly reforganisation: string;
 
   @IsString()
-  reftypeparametre: string;
+  readonly refwarehouse: string;
 }

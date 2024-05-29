@@ -67,7 +67,7 @@ export class ParametresController {
     }
   }
   /** OK **/
-  @Get('showparametre/:refcompany/:refparametre')
+  @Get('showparametre/:refcompany/:refparametre/:reforganisation')
   async showParametre(@Param() parametredto: ParametresShowDto) {
     try {
       return await this.parametreService.showParametre(parametredto);
@@ -123,7 +123,7 @@ export class ParametresController {
     }
   }
   /** OK **/
-  @Get('showattributparametre/:refcompany/:refparametre/:value')
+  @Get('showattributparametre/:refcompany/:refparametre/:value/:reforganisation')
   async showAttributParametre(@Param() attributparametredto: ParametresAttributeShowDto) {
     try {
       return await this.parametreService.showAttributparametre(attributparametredto);

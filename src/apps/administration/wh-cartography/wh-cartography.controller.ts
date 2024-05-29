@@ -17,6 +17,12 @@ import {AisleSaveDto} from "./DTO/aisle-save.dto";
 import {AisleFindDto} from "./DTO/aisle-find.dto";
 import {LocationFindDto} from "./DTO/location-find.dto";
 import {LocationSaveDto} from "./DTO/location-save.dto";
+import {CityFindDto} from "./DTO/city-find.dto";
+import {AddressSaveDto} from "./DTO/address-save.dto";
+import {AddressFindDto} from "./DTO/address-find.dto";
+import {AddressAffectedFindDto} from "./DTO/address-affected-find.dto";
+import {AddressAttachSaveDto} from "./DTO/address-attach-save.dto";
+import {AddressAttachDeleteDto} from "./DTO/address-attach-delete.dto";
 
 @Controller('wh-cartography')
 export class WhCartographyController {
@@ -77,7 +83,7 @@ export class WhCartographyController {
     }
   }
 
-  @Get('showcompany/:refcompany')
+  @Get('showcompany/:refcompany/:reforganisation')
   async showCompany(@Param() companydto: CompanyShowDto) {
     try {
       return await this.whcartographyService.showCompany(companydto);
@@ -117,6 +123,7 @@ export class WhCartographyController {
   @Post('createsitegeographic')
   async createSitegeographic(@Body() sitegeographicDto: SitegeographicCreateDto) {
     try {
+      console.log('=-=-=-=-=-=-===>>>>',sitegeographicDto)
       return await this.whcartographyService.createSitegeographic(sitegeographicDto);
     } catch (e) {
       throw new HttpException(
@@ -150,7 +157,7 @@ export class WhCartographyController {
     }
   }
 
-  @Get('showsitegeographic/:refcompany/:refsitegeographic')
+  @Get('showsitegeographic/:refcompany/:refsitegeographic/:reforganisation')
   async showSitegeographic(@Param() sitegeographicDto: SitegeographicShowDto) {
     try {
       return await this.whcartographyService.showSitegeographic(sitegeographicDto);
@@ -187,24 +194,7 @@ export class WhCartographyController {
     }
   }
 
-  @Post('lookforwarehouse')
-  async lookForWarehouse(@Body() warehouseDto: WarehouseFindDto) {
-    try {
-      return await this.whcartographyService.lookForWarehouse(warehouseDto);
-    } catch (e) {
-      throw new HttpException(
-        {
-          status: e.status,
-          error: e.response.error,
-        },
-        e.status,
-        {
-          cause: e,
-        },
-      );
-    }
-  }
-
+  /** IN USE **/
   @Post('findwarehousebycriteria')
   async findWarehouseByCriteria(@Body() warehouseDto: WarehouseFindDto) {
     try {
@@ -223,7 +213,8 @@ export class WhCartographyController {
     }
   }
 
-  @Get('showwarehouse/:refcompany/:refwarehouse')
+  /** IN USE JUST IN THE SHOW WAREHOUSE **/
+  @Get('showwarehouse/:refcompany/:refwarehouse/:reforganisation')
   async showWarehouse(@Param() warehouseDto: WarehouseShowDto) {
     try {
       return await this.whcartographyService.showWarehouse(warehouseDto);
@@ -296,7 +287,7 @@ export class WhCartographyController {
     }
   }
 
-  @Get('showarea/:refcompany/:refarea')
+  @Get('showarea/:refcompany/:refarea/:reforganisation')
   async showArea(@Param() areaDto: AreaShowDto) {
     try {
       return await this.whcartographyService.showArea(areaDto);
@@ -404,4 +395,149 @@ export class WhCartographyController {
       );
     }
   }
+
+  @Get('findaddresstypes')
+  async findAddressTypes() {
+    try {
+      return await this.whcartographyService.findAddressTypes();
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Get('findcountries')
+  async findCountries() {
+    try {
+      return await this.whcartographyService.findCountries();
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('findcitiesbycountry')
+  async findCitiesByCountry(@Body() cityDto: CityFindDto) {
+    try {
+      return await this.whcartographyService.findCitiesByCountry(cityDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('saveaddress')
+  async saveAddress(@Body() addressDto: AddressSaveDto) {
+    try {
+      return await this.whcartographyService.saveAddress(addressDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('findaddress')
+  async findAddress(@Body() addressDto: AddressFindDto) {
+    try {
+      return await this.whcartographyService.findaddress(addressDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('getaddressbycontrolobject')
+  async getAddressByControlObject(@Body() addressaffectedfindDto: AddressAffectedFindDto) {
+    try {
+        console.log('',addressaffectedfindDto)
+      return await this.whcartographyService.getAddressByControlObject(addressaffectedfindDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+    @Post('attachaddresstoobject')
+    async attachAddressToObject(@Body() addressattachsaveDto: AddressAttachSaveDto) {
+        try {
+            return await this.whcartographyService.attachAddressToObject(addressattachsaveDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response['error'],
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
+
+    @Post('detachedaddressfromobject')
+    async detachedAddressFromObject(@Body() addressattachDeleteDto: AddressAttachDeleteDto) {
+        try {
+            return await this.whcartographyService.detachedAddressFromObject(addressattachDeleteDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response['error'],
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
 }

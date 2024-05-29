@@ -1,54 +1,68 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne, OneToMany,
+    PrimaryColumn,
+    UpdateDateColumn
 } from "typeorm";
-import { UserEntity } from '../users/user.entity';
-import { CompanyEntity } from './company.entity';
-import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
-import { ParametresEntity } from "../parametres/parametres.entity";
-import { WarehouseEntity } from "./warehouse.entity";
+import {CompanyEntity} from './company.entity';
+import {ParametresHeaderEntity} from "../parametres/parametres-header.entity";
+import {WarehouseEntity} from "./warehouse.entity";
+import {OrganisationEntity} from "./organisation.entity";
 
 @Entity('sitegeographic')
 export class SitegeographyEntity {
-  @PrimaryColumn()
-  refcompany: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @PrimaryColumn()
-  refsitegeographic: string;
+    @PrimaryColumn()
+    refsitegeographic: string;
 
-  @Column()
-  sitegeographic: string;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @Column({nullable: true})
-  deliveryadresse: string;
+    @Column()
+    sitegeographic: string;
 
-  @Column()
-  actif: boolean;
+    @Column({nullable: true})
+    description: string;
 
-  @Column()
-  idheaderparametre: number;
+    @Column({default: true, nullable: false})
+    actif: boolean;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  datetimecreation: Date;
+    @Column({nullable: true})
+    idheaderparametre: number;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  datetimelastupdate: Date;
+    @CreateDateColumn({type: 'timestamptz'})
+    datetimecreation: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
-  company: CompanyEntity;
+    @UpdateDateColumn({type: 'timestamptz'})
+    datetimelastupdate: Date;
 
-  @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.idheaderparametre, { nullable: false })
-  @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
-  headerparametre: ParametresHeaderEntity;
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @OneToMany(() => WarehouseEntity, (warehouseEntity) => warehouseEntity.sitegeographic)
-  @JoinColumn({ name: 'refsitegeographic' })
-  warehouses: WarehouseEntity[];
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
+
+    @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.idheaderparametre, {nullable: false})
+    @JoinColumn([{name: 'idheaderparametre', referencedColumnName: 'idheaderparametre'}])
+    headerparametre: ParametresHeaderEntity;
+
+    @OneToMany(() => WarehouseEntity, (warehouseEntity) => warehouseEntity.sitegeographic)
+    @JoinColumn([
+        {name: 'refsitegeographic', referencedColumnName: 'refsitegeographic'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    warehouses: WarehouseEntity[];
 }

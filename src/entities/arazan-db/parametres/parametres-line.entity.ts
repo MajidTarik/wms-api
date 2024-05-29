@@ -1,9 +1,8 @@
 import { CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
-import { ParametresEntity } from "./parametres.entity";
-import { UserEntity } from "../users/user.entity";
 import { ParametresAttributEntity } from "./parametres-attribut.entity";
 import { CompanyEntity } from "../cartography/company.entity";
 import { ParametresHeaderEntity } from "./parametres-header.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('parametreslines')
 export class ParametresLineEntity {
@@ -18,6 +17,9 @@ export class ParametresLineEntity {
 
   @PrimaryColumn()
   value: string;
+
+  @PrimaryColumn()
+  reforganisation: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   datetimecreation: Date;
@@ -35,13 +37,21 @@ export class ParametresLineEntity {
   @JoinColumn([
     { name: 'refcompany', referencedColumnName: 'refcompany' },
     { name: 'refparametre', referencedColumnName: 'refparametre' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
     { name: 'value', referencedColumnName: 'value' },
   ])
   parametresattributs: ParametresAttributEntity;
 
-  @OneToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
   @JoinColumn([
-    { name: 'refcompany', referencedColumnName: 'refcompany' }
+    { name: 'refcompany', referencedColumnName: 'refcompany'},
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
   company: CompanyEntity;
+
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
 }

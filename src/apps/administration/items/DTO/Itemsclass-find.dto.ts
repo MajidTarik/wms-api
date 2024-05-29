@@ -6,9 +6,5 @@ export class ItemsclassFindDto {
 
   @IsString()
   @IsOptional()
-  readonly refvariant: string;
-
-  @IsString()
-  @IsOptional()
   readonly refwarehouse: string;
 }

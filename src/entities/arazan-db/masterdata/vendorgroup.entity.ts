@@ -5,8 +5,9 @@ import {
   OneToMany,
   PrimaryColumn,
 } from 'typeorm';
-import { VendorEntity } from './vendor.entity';
 import {CompanyEntity} from "../cartography/company.entity";
+import {VendorreleasedEntity} from "./vendorreleased.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('vendorgroup')
 export class VendorgroupEntity {
@@ -19,14 +20,27 @@ export class VendorgroupEntity {
   @PrimaryColumn()
   refcompany: string;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
+  @PrimaryColumn()
+  reforganisation: string;
+
+  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+  @JoinColumn([
+    { name: 'refcompany', referencedColumnName: 'refcompany'},
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
   company: CompanyEntity;
 
-  @OneToMany(() => VendorEntity, (vendorentity) => vendorentity.refvendorgroup)
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
+
+  @OneToMany(() => VendorreleasedEntity, (vendorreleased) => vendorreleased.refvendorgroup)
   @JoinColumn([
     { name: 'refvendorgroup', referencedColumnName: 'refvendorgroup' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' }
+    { name: 'refcompany', referencedColumnName: 'refcompany' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation' },
   ])
-  vendors: VendorEntity[];
+  vendorreleased: VendorreleasedEntity[];
 }

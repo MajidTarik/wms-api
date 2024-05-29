@@ -8,17 +8,10 @@ import {
   PrimaryColumn,
   UpdateDateColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
-import { CompanyEntity } from '../cartography/company.entity';
-import { ParametresHeaderEntity } from "../parametres/parametres-header.entity";
 import { CurrencyEntity } from "./currency.entity";
 import { VendortypeEntity } from "./vendortype.entity";
-import { VendorgroupEntity } from "./vendorgroup.entity";
-import { DeliverymodeEntity } from "./deliverymode.entity";
-import { PaymentconditionEntity } from "./paymentcondition.entity";
-import { PaymentmethodEntity } from "./paymentmethod.entity";
 import { LanguageEntity } from "./language.entity";
-import {TaxeGroupEntity} from "./taxe-group.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('vendor')
 export class VendorEntity {
@@ -26,7 +19,7 @@ export class VendorEntity {
   refvendor: string;
 
   @PrimaryColumn()
-  refcompany: string;
+  reforganisation: string;
 
   @Column({ nullable: false })
   refvendortype: string;
@@ -36,9 +29,6 @@ export class VendorEntity {
 
   @Column({ nullable: true })
   nom: string;
-
-  @Column({ nullable: true })
-  refvendorgroup: string;
 
   @Column({ nullable: true })
   ice: string;
@@ -77,25 +67,7 @@ export class VendorEntity {
   refvendorinvoicing: string;
 
   @Column({ nullable: true })
-  refdeliverymode: string;
-
-  @Column({ nullable: true })
-  refpaymentcondition: string;
-
-  @Column({ nullable: true })
-  refpaymentmethod: string;
-
-  @Column({ nullable: true })
-  idheaderparametre: number;
-
-  @Column({ nullable: true })
   reflanguage: string;
-
-  @Column({ nullable: true })
-  reftaxegroup: string;
-
-  @Column({ default: false })
-  bloqued: boolean;
 
   @CreateDateColumn({ type: 'timestamptz' })
   datetimecreation: Date;
@@ -103,13 +75,11 @@ export class VendorEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn({ name: 'refcompany' })
-  company: CompanyEntity;
-
-  @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.idheaderparametre, { nullable: false })
-  @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
-  headerparametre: ParametresHeaderEntity;
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
 
   @ManyToOne(() => CurrencyEntity, (currencyentity) => currencyentity.refcurrency, { nullable: false })
   @JoinColumn([
@@ -129,56 +99,10 @@ export class VendorEntity {
   ])
   language: LanguageEntity;
 
-  @ManyToOne(() => VendorgroupEntity, (vendorgroupentity) => vendorgroupentity.refvendorgroup, { nullable: false })
-  @JoinColumn([
-    { name: 'refvendorgroup', referencedColumnName: 'refvendorgroup' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  vendorgroup: VendorgroupEntity;
-
-  @ManyToOne(() => DeliverymodeEntity, (deliverymodeEntity) => deliverymodeEntity.refdeliverymode, {nullable: false})
-  @JoinColumn([
-    { name: 'refdeliverymode', referencedColumnName: 'refdeliverymode' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  deliverymode: DeliverymodeEntity;
-
-
-  @ManyToOne(() => PaymentconditionEntity, (paymentconditionentity) => paymentconditionentity.refpaymentcondition, {nullable: false})
-  @JoinColumn([
-    { name: 'refpaymentcondition', referencedColumnName: 'refpaymentcondition' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  paymentcondition: PaymentconditionEntity;
-
-  @ManyToOne(() => PaymentmethodEntity, (paymentmethodentity) => paymentmethodentity.refpaymentmethod, {nullable: false})
-  @JoinColumn([
-    { name: 'refpaymentmethod', referencedColumnName: 'refpaymentmethod' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  paymentmethod: PaymentmethodEntity;
-
   @ManyToOne(() => VendorEntity, (vendorentity) => vendorentity.refvendorinvoicing, {nullable: true})
   @JoinColumn([
     { name: 'refvendorinvoicing', referencedColumnName: 'refvendor' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation' },
   ])
   vendorinvoicing: VendorEntity;
-
-  @ManyToOne(() => TaxeGroupEntity, (taxegroupentity) => taxegroupentity.reftaxegroup, {nullable: true})
-  @JoinColumn([
-    { name: 'reftaxegroup', referencedColumnName: 'reftaxegroup' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  taxegroup: TaxeGroupEntity;
-
-  /**
-
-
-  @ManyToOne(() => PaymentmethodEntity, (paymentmethodentity) => paymentmethodentity.refpaymentmethod, {nullable: false})
-  @JoinColumn([
-    { name: 'refvendorinvoicing', referencedColumnName: 'refvendorinvoicing' },
-  ])
-  vendorinvoicing: Vendorinvoicing;
-   **/
 }

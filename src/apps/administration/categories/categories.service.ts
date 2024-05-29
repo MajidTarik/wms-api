@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {BadRequestException, forwardRef, Inject, Injectable, InternalServerErrorException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Like, Repository } from "typeorm";
 import { CategoriesGroupSaveDto } from './DTO/categories-group-save.dto';
@@ -10,8 +10,9 @@ import { CategoriesEntity } from "../../../entities/arazan-db/categories/categor
 import { lastValueFrom, from } from "rxjs";
 import { CategoriesSaveDto } from "./DTO/categories-save.dto";
 import { CategoriesAffectationDto } from "./DTO/categories-Affectation.dto";
-import {ItemsSaveDto} from "../items/DTO/Items-save.dto";
-import {CategoriesaffectationsEntity} from "../../../entities/arazan-db/categories/categoriesaffectations.entity";
+import {MasterdataService} from "../masterdata/masterdata.service";
+import {CategoriesitemsEntity} from "../../../entities/arazan-db/categories/categoriesitems.entity";
+import {CategoriesvendorsEntity} from "../../../entities/arazan-db/categories/categoriesvendors.entity";
 
 @Injectable({})
 export class CategoriesService {
@@ -22,10 +23,16 @@ export class CategoriesService {
     @InjectRepository(CategoriesEntity)
     private readonly categoriesRepository: Repository<CategoriesEntity>,
 
-    @InjectRepository(CategoriesaffectationsEntity)
-    private readonly categoriesaffectationsRepository: Repository<CategoriesaffectationsEntity>,
+    @InjectRepository(CategoriesitemsEntity)
+    private readonly categoriesitemsRepository: Repository<CategoriesitemsEntity>,
+
+    @InjectRepository(CategoriesvendorsEntity)
+    private readonly categoriesvendorRepository: Repository<CategoriesvendorsEntity>,
 
     private parametreService: ParametresService,
+
+    //@Inject(forwardRef(() => MasterdataService))
+    private masterdataService: MasterdataService,
   ) {}
 
   // --------------------------------- Group Categoris
@@ -143,43 +150,138 @@ export class CategoriesService {
   }
 
   async findCategoriesByEntity(categoriesAffectation: CategoriesAffectationDto) {
-    return await this.categoriesGroupRepository
-      .createQueryBuilder('categoriesgroup')
-      .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.refcontrolobject = :refcontrolobject and okforgroupcategories = true', {refcontrolobject: categoriesAffectation.refcontrolobject})
-      .leftJoinAndSelect('categoriesgroup.categoriesgroupaffectation', 'categoriesaffectations', 'categoriesaffectations.refentity = :refentity and categoriesaffectations.entity = :entity', {refentity: categoriesAffectation.refentity, entity: categoriesAffectation.entity})
-      .getMany()
-      .then(async (res) => {
-        let i = 0;
-        for await (const grcategories of res) {
-          const hierarchyCategories = await this.findHierarchyByGroupCategories({refcategoriesgroup: grcategories['refcategoriesgroup'], refcompany: categoriesAffectation.refcompany, refcategories: undefined})
-          res[i]['categories'] = hierarchyCategories;
-          i++;
-        }
+    const controlobject = await this.masterdataService.findControlobject({
+      refcontrolobject : undefined,
+      okforaddress: undefined,
+      okforgroupcategories: undefined,
+      okforworkflows: undefined,
+      prefix: categoriesAffectation.prefix,
+    });
 
-        return res;
-      })
-      .catch((err) => {
-        throw new BadRequestException(err.message, { cause: err, description: err.query,});
-      });
-  }
+    let buildedQuery = await this.categoriesGroupRepository.createQueryBuilder('categoriesgroup');
 
-  async affectationEntityCategories(categories, refcompany, refentity, entity) {
-    let i = 0;
-    for await (const catego of categories) {
-      categories[i]['refcompany'] = refcompany;
-      categories[i]['refentity'] = refentity;
-      categories[i]['entity'] = entity;
-      categories[i]['actif'] = true;
-      i++;
+    if (!controlobject || controlobject.length < 1) {
+      throw new BadRequestException('Merci d envoyer au moins un critére valide l\'object contrôler est invalide', {});
     }
 
-    return await this.categoriesaffectationsRepository
-        .save(categories)
-        .then(async (res) => {
-          return res;
+    if (!controlobject[0].okforgroupcategories) {
+      console.log('object non autoriser pour le contrôle d\'address')
+      throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
+    } else {
+      if (controlobject[0].prefix === 'VD') {
+        await buildedQuery
+            .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.prefix = :prefix', {prefix: categoriesAffectation.prefix})
+            .leftJoinAndSelect('categoriesgroup.categoriesgroupvendor', 'categoriesgroupaffectation', 'categoriesgroupaffectation.refvendor = :refobject', {refobject: categoriesAffectation.refObject})
+            .where('categoriesgroup.refcompany = :refcompany', {refcompany: categoriesAffectation.refcompany})
+            .andWhere('categoriesgroup.refcompany = :refcompany', {refcompany: categoriesAffectation.refcompany})
+      } else if (controlobject[0].prefix === 'ITM') {
+        await buildedQuery
+            .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.prefix = :prefix', {prefix: categoriesAffectation.prefix})
+            .leftJoinAndSelect('categoriesgroup.categoriesgroupitem', 'categoriesgroupaffectation', 'categoriesgroupaffectation.refitem = :refobject', {refobject: categoriesAffectation.refObject})
+            .where('categoriesgroup.refcompany = :refcompany', {refcompany: categoriesAffectation.refcompany})
+      } else {
+        throw new BadRequestException('l\'object contrôler est introuvable', {});
+      }
+      return await buildedQuery
+          .getMany()
+          .then(async (res) => {
+            let i = 0;
+            for await (const grcategories of res) {
+              const hierarchyCategories = await this.findHierarchyByGroupCategories({refcategoriesgroup: grcategories['refcategoriesgroup'], refcompany: categoriesAffectation.refcompany, refcategories: undefined})
+              res[i]['categories'] = hierarchyCategories;
+              i++;
+            }
+            return res;
+          })
+          .catch((err) => {
+            throw new BadRequestException(err.message, {cause: err, description: err.query,});
+          });
+    }
+  }
+
+  async affectationEntityCategories(categories, refcompany, refobject, prefix) {
+    const controlobject = await this.masterdataService.findControlobject({
+      refcontrolobject : undefined,
+      okforaddress: undefined,
+      okforgroupcategories: undefined,
+      okforworkflows: undefined,
+      prefix: prefix,
+    });
+
+    if (!controlobject || controlobject.length < 1) {
+      throw new BadRequestException('Merci d envoyer au moins un critére valide l\'object contrôler est invalide', {});
+    }
+
+    if (!controlobject[0].okforgroupcategories) {
+      console.log('object non autoriser pour le contrôle d\'address')
+      throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
+    } else {
+      if (controlobject[0].prefix === 'VD') {
+        return await this.categoriesvendorRepository.findBy({
+          refcompany: refcompany,
+          refvendor: refobject,
         })
-        .catch((err) => {
-          throw new BadRequestException(err.message, { cause: err, description: err.query,});
-        });
+            .then(async (res) => {
+              return await this.categoriesvendorRepository.remove(res)
+                  .then(async (res) => {
+                    let i = 0;
+                    for await (const catego of categories) {
+                      categories[i]['refcompany'] = refcompany;
+                      categories[i]['refvendor'] = refobject;
+                      i++;
+                    }
+                    return await this.categoriesvendorRepository
+                        .save(categories)
+                        .then(async (res) => {
+                          return res;
+                        })
+                        .catch((err) => {
+                          throw new BadRequestException(err.message, { cause: err, description: err.query,});
+                        });
+                  })
+                  .catch((err) => {
+                    throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                  });
+            })
+            .catch((err) => {
+              throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+      } else if (controlobject[0].prefix === 'ITM') {
+        console.log('=====================================-=-=-=-=-=-=------------------->>>>>>!!!')
+        return await this.categoriesitemsRepository.findBy({
+          refcompany: refcompany,
+          refitem: refobject,
+        })
+            .then(async (res) => {
+              return await this.categoriesitemsRepository.remove(res)
+                  .then(async (res) => {
+                    let i = 0;
+                    for await (const catego of categories) {
+                      categories[i]['refcompany'] = refcompany;
+                      categories[i]['refitem'] = refobject;
+                      i++;
+                    }
+                    return await this.categoriesitemsRepository
+                        .save(categories)
+                        .then(async (res) => {
+                          return res;
+                        })
+                        .catch((err) => {
+                          throw new BadRequestException(err.message, { cause: err, description: err.query,});
+                        });
+                  })
+                  .catch((err) => {
+                    throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                  });
+            })
+            .catch((err) => {
+              throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+
+        console.log('<<<<<<<<<<<<<<<<=====================================-=-=-=-=-=-=------------------->>>>>>!!!')
+      } else {
+        throw new BadRequestException('l\'object contrôler est introuvable', {});
+      }
+    }
   }
 }

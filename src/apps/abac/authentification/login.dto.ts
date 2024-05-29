@@ -6,4 +6,7 @@ export class LoginDto {
 
   @IsString()
   pwd: string;
+
+  @IsString()
+  reforganisation: string;
 }

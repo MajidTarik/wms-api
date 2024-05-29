@@ -3,15 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
+  ManyToOne,
+  OneToMany,
   PrimaryColumn,
   UpdateDateColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
 import { CompanyEntity } from '../cartography/company.entity';
-import { ItemsEntity } from "./items.entity";
-import { UomconversionEntity } from "./uomconversion.entity";
+import { OrganisationEntity } from "../cartography/organisation.entity";
+import { ItemsreleasedEntity } from "./itemsreleased.entity";
 
 @Entity('pricemodel')
 export class PricemodelEntity {
@@ -20,6 +19,9 @@ export class PricemodelEntity {
 
   @PrimaryColumn()
   refcompany: string;
+
+  @PrimaryColumn()
+  reforganisation: string;
 
   @Column()
   pricemodel: string;
@@ -33,14 +35,24 @@ export class PricemodelEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
+  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+  @JoinColumn([
+    { name: 'refcompany', referencedColumnName: 'refcompany'},
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
   company: CompanyEntity;
 
-  @OneToMany(() => ItemsEntity, (itemsentity) => itemsentity.pricemodel)
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
+
+  @OneToMany(() => ItemsreleasedEntity, (itemsreleased) => itemsreleased.pricemodel)
   @JoinColumn([
     { name: 'refpricemodel', referencedColumnName: 'refpricemodel' },
     { name: 'refcompany', referencedColumnName: 'refcompany' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
-  items: ItemsEntity[];
+  itemsreleased: ItemsreleasedEntity[];
 }

@@ -146,7 +146,7 @@ export class MasterdataService {
     }
 
     async saveVendor(vendorDto: VendorSaveDto) {
-        const idheaderparametre = await this.parametreService.checkaxesbycompany( vendorDto.parametres, vendorDto.refcompany, 'ANALYTIC' )
+        const idheaderparametre = -100//await this.parametreService.checkaxesbycompany( vendorDto.parametres, vendorDto.refcompany, 'ANALYTIC' )
         vendorDto['idheaderparametre'] = Number(idheaderparametre);
         const vendor = await this.vendorRepository.create(vendorDto)
         return await this.vendorRepository
@@ -169,6 +169,7 @@ export class MasterdataService {
             message = 'Vendor '+vendorDto.refvendor+ ' Introuvable!';
             throw new BadRequestException(message, { cause: message, description: message,});
         }
+        /**
         if(vendors[0].bloqued) {
             message = 'Vendor bloqué'+vendorDto.refvendor;
             throw new BadRequestException(message, { cause: message, description: message,});
@@ -177,6 +178,7 @@ export class MasterdataService {
             message = 'Taxe group de Vendor non paramétré'+vendorDto.refvendor;
             throw new BadRequestException(message, { cause: message, description: message,});
         }
+         **/
         if([undefined, null].includes(vendors[0].refcurrency)) {
             message = 'Currency non paramétré '+vendorDto.refvendor;
             throw new BadRequestException(message, { cause: message, description: message,});
@@ -193,8 +195,11 @@ export class MasterdataService {
         return await this.controlObjectRepository
             .find({
                 where: [{
-                        okforworkflows: controlobjectDto?.okforworkflows,
-                        okforgroupcategories: controlobjectDto?.okforgroupcategories,
+                    okforworkflows: controlobjectDto?.okforworkflows || undefined,
+                    okforgroupcategories: controlobjectDto?.okforgroupcategories || undefined,
+                    okforaddress: controlobjectDto?.okforaddress || undefined,
+                    refcontrolobject: controlobjectDto?.refcontrolobject || undefined,
+                    prefix: controlobjectDto?.prefix || undefined
                 }],
                 order: { refcontrolobject: 'ASC' },
             })

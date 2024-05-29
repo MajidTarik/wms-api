@@ -18,9 +18,9 @@ export class PassportJwtStrategy extends PassportStrategy(Strategy) {
       lastname: payload.lastname,
       firstname: payload.firstname,
       email: payload.email,
-      matricule: payload.sub,
-      companiesusers: JSON.stringify(payload.companiesusers),
-      refcompany: payload.refcompany,
+      matricule: payload.matricule,
+      reforganisation: payload.reforganisation,
+      //companiesusers: JSON.stringify(payload.companiesusers),
     }
   }
 }

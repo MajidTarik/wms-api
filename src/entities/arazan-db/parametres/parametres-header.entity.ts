@@ -13,11 +13,11 @@ import {
 import { CompanyEntity } from '../cartography/company.entity';
 import { ParametresLineEntity } from "./parametres-line.entity";
 import { SitegeographyEntity } from "../cartography/sitegeography.entity";
-import { VariantsEntity } from "../items/variants.entity";
 import { ParametresTypesEntity } from "./parametres-types.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('parametresheaders')
-@Unique(['refcompany', 'refheaderparametre'])
+@Unique(['refcompany', 'refheaderparametre', 'reforganisation'])
 export class ParametresHeaderEntity {
   @PrimaryGeneratedColumn()
   idheaderparametre: number;
@@ -27,6 +27,9 @@ export class ParametresHeaderEntity {
 
   @Column()
   refcompany: string;
+
+  @Column()
+  reforganisation: string;
 
   @Column()
   reftypeparametre: string;
@@ -39,9 +42,16 @@ export class ParametresHeaderEntity {
 
   @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
   @JoinColumn([
-    { name: 'refcompany', referencedColumnName: 'refcompany' }
+    { name: 'refcompany', referencedColumnName: 'refcompany'},
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
   company: CompanyEntity;
+
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
 
   @OneToMany(() => ParametresLineEntity, (parametreslineentity) => parametreslineentity.parametresheaders)
   parametreslines: ParametresLineEntity[];

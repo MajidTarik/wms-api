@@ -10,6 +10,9 @@ export class LocationSaveDto {
   @IsString()
   readonly refcompany: string;
 
+  @IsString()
+  readonly reforganisation: string;
+
   @IsBoolean()
   readonly actif: boolean;
 

@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import {IsOptional, IsString, MinLength} from 'class-validator';
 export class AreaFindDto {
   @IsString()
   @IsOptional()
@@ -10,4 +10,12 @@ export class AreaFindDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  @IsOptional()
+  readonly refwarehouse: string;
+
+  @IsString()
+  @MinLength(2)
+  readonly reforganisation: string;
 }

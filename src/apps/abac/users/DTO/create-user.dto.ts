@@ -1,14 +1,7 @@
-import { IsBoolean, IsEmail, IsInt, IsString, IsStrongPassword, MinLength } from "class-validator";
+import {IsBoolean, IsEmail, IsInt, IsOptional, IsString, IsStrongPassword, MinLength} from "class-validator";
 export class CreateUserDto {
   @IsString()
-  @MinLength(4)
   readonly login: string;
-
-  @IsStrongPassword()
-  readonly pwd: string;
-
-  @IsString()
-  readonly pwdConfirmation: string;
 
   @IsString()
   @MinLength(3)
@@ -22,7 +15,8 @@ export class CreateUserDto {
   readonly email: string;
 
   @IsString()
-  readonly matricule: string;
+  @IsOptional()
+  matricule: string;
 
   @IsBoolean()
   readonly actif: boolean;

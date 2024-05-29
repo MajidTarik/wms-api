@@ -8,4 +8,16 @@ export class ControlobjectFindDto {
   @IsBoolean()
   @IsOptional()
   readonly okforworkflows: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly okforaddress: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly refcontrolobject: string;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly prefix: string;
 }

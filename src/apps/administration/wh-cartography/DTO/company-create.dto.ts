@@ -2,6 +2,10 @@ import { IsBoolean, IsEmail, IsOptional, IsPhoneNumber, IsString, MaxLength, Min
 export class CompanyCreateDto {
   @IsString()
   @MinLength(3)
+  readonly reforganisation: string;
+
+  @IsString()
+  @MinLength(3)
   @MaxLength(5)
   readonly refcompany: string;
 
@@ -11,6 +15,7 @@ export class CompanyCreateDto {
   readonly company: string;
 
   @IsPhoneNumber()
+  @IsOptional()
   readonly tel1: string;
 
   @IsPhoneNumber()
@@ -19,6 +24,7 @@ export class CompanyCreateDto {
 
   @IsString()
   @MaxLength(20)
+  @IsOptional()
   readonly responsable1: string;
 
   @IsString()
@@ -27,6 +33,7 @@ export class CompanyCreateDto {
   readonly responsable2: string;
 
   @IsEmail()
+  @IsOptional()
   readonly email1: string;
 
   @IsEmail()

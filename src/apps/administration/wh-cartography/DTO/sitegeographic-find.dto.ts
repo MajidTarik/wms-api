@@ -9,6 +9,8 @@ export class SitegeographicFindDto {
   readonly sitegeographic: string;
 
   @IsString()
-  @IsOptional()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 }

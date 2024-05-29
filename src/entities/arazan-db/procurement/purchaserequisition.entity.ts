@@ -1,128 +1,145 @@
 import {
-  BeforeUpdate,
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne, OneToMany,
+    PrimaryColumn,
+    UpdateDateColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
-import { CompanyEntity } from '../cartography/company.entity';
+import {UserEntity} from '../users/user.entity';
+import {CompanyEntity} from '../cartography/company.entity';
 import {PurchaserequisitionStatutsEntity} from "./purchaserequisition-statuts.entity";
-import {ItemsEntity} from "../items/items.entity";
 import {PurchaserequisitionLinesEntity} from "./purchaserequisition-lines.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
+import {UserCompaniesEntity} from "../users/user-companies.entity";
 
 @Entity('purchaserequisition')
 export class PurchaserequisitionEntity {
-  @PrimaryColumn()
-  refpurchaserequisition: string;
+    @PrimaryColumn()
+    refpurchaserequisition: string;
 
-  @PrimaryColumn()
-  refcompany: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @Column()
-  refpurchaserequisitionstatuts: string;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @Column()
-  preparator: string;
+    @Column()
+    refpurchaserequisitionstatuts: string;
 
-  @Column({ nullable: true })
-  requisitionobjectif: string;
+    @Column()
+    preparator: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  requisitiondate: Date;
+    @Column({nullable: true})
+    requisitionobjectif: string;
 
-  @Column({nullable: true})
-  details: string;
+    @CreateDateColumn({type: 'timestamptz'})
+    requisitiondate: Date;
 
-  @Column({nullable: true})
-  submittedby: string;
+    @Column({nullable: true})
+    details: string;
 
-  @Column({nullable: true})
-  datesubmittion: Date;
+    @Column({nullable: true})
+    submittedby: string;
 
-  @Column({nullable: true})
-  approvedby: string;
+    @Column({nullable: true})
+    datesubmittion: Date;
 
-  @Column({nullable: true})
-  dateapprovement: Date;
+    @Column({nullable: true})
+    approvedby: string;
 
-  @Column({nullable: true})
-  closedby: string;
+    @Column({nullable: true})
+    dateapprovement: Date;
 
-  @Column({nullable: true})
-  dateclosing: Date;
+    @Column({nullable: true})
+    closedby: string;
 
-  @Column({nullable: true})
-  rejectedby: string;
+    @Column({nullable: true})
+    dateclosing: Date;
 
-  @Column({nullable: true})
-  daterejection: Date;
+    @Column({nullable: true})
+    rejectedby: string;
 
-  @Column({ length: 256, nullable: true })
-  description: string;
+    @Column({nullable: true})
+    daterejection: Date;
 
-  @Column({ default: true })
-  actif: boolean;
+    @Column({length: 256, nullable: true})
+    description: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  datetimecreation: Date;
+    @Column({default: true})
+    actif: boolean;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  datetimelastupdate: Date;
+    @CreateDateColumn({type: 'timestamptz'})
+    datetimecreation: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
-  @JoinColumn({ name: 'refcompany' })
-  company: CompanyEntity;
+    @UpdateDateColumn({type: 'timestamptz'})
+    datetimelastupdate: Date;
 
-  @ManyToOne(() => PurchaserequisitionStatutsEntity, (purchaserequisitionStatutsentity) => purchaserequisitionStatutsentity.purchasesrequisitions, {nullable: false})
-  @JoinColumn([
-    { name: 'refpurchaserequisitionstatuts', referencedColumnName: 'refpurchaserequisitionstatuts' },
-  ])
-  purchaserequisitionstatuts: PurchaserequisitionStatutsEntity;
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @ManyToOne(() => UserEntity, (userentity) => userentity.matricule, {nullable: false})
-  @JoinColumn([
-    { name: 'preparator', referencedColumnName: 'matricule' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  preparatorpurchreq: UserEntity;
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
 
-  @ManyToOne(() => UserEntity, (userentity) => userentity.matricule, {nullable: false})
-  @JoinColumn([
-    { name: 'submittedby', referencedColumnName: 'matricule' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  submitterpurchreq: UserEntity;
+    @ManyToOne(() => PurchaserequisitionStatutsEntity, (purchaserequisitionStatutsentity) => purchaserequisitionStatutsentity.purchasesrequisitions, {nullable: false})
+    @JoinColumn([
+        {name: 'refpurchaserequisitionstatuts', referencedColumnName: 'refpurchaserequisitionstatuts'},
+    ])
+    purchaserequisitionstatuts: PurchaserequisitionStatutsEntity;
 
-  @ManyToOne(() => UserEntity, (userentity) => userentity.matricule, {nullable: false})
-  @JoinColumn([
-    { name: 'approvedby', referencedColumnName: 'matricule' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  approvalpurchreq: UserEntity;
+    @ManyToOne(() => UserCompaniesEntity, (userentity) => userentity.matricule, {nullable: false})
+    @JoinColumn([
+        {name: 'preparator', referencedColumnName: 'matricule'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    preparatorpurchreq: UserCompaniesEntity;
 
-  @ManyToOne(() => UserEntity, (userentity) => userentity.matricule, {nullable: false})
-  @JoinColumn([
-    { name: 'closedby', referencedColumnName: 'matricule' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  closedpurchreq: UserEntity;
+    @ManyToOne(() => UserCompaniesEntity, (userentity) => userentity.matricule, {nullable: false})
+    @JoinColumn([
+        {name: 'submittedby', referencedColumnName: 'matricule'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    submitterpurchreq: UserCompaniesEntity;
 
-  @ManyToOne(() => UserEntity, (userentity) => userentity.matricule, {nullable: false})
-  @JoinColumn([
-    { name: 'rejectedby', referencedColumnName: 'matricule' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  rejecterpurchreq: UserEntity;
+    @ManyToOne(() => UserCompaniesEntity, (userentity) => userentity.matricule, {nullable: false})
+    @JoinColumn([
+        {name: 'approvedby', referencedColumnName: 'matricule'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    approvalpurchreq: UserCompaniesEntity;
 
-  @OneToMany(() => PurchaserequisitionLinesEntity, (purchaserequisitionlinesEntity) => purchaserequisitionlinesEntity.purchaserequisition)
-  @JoinColumn([
-    { name: 'refpurchaserequisition', referencedColumnName: 'refpurchaserequisition' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  purchaserequisitionlines: PurchaserequisitionLinesEntity[];
+    @ManyToOne(() => UserCompaniesEntity, (userentity) => userentity.matricule, {nullable: false})
+    @JoinColumn([
+        {name: 'closedby', referencedColumnName: 'matricule'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    closedpurchreq: UserCompaniesEntity;
+
+    @ManyToOne(() => UserCompaniesEntity, (userentity) => userentity.matricule, {nullable: false})
+    @JoinColumn([
+        {name: 'rejectedby', referencedColumnName: 'matricule'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    rejecterpurchreq: UserCompaniesEntity;
+
+    @OneToMany(() => PurchaserequisitionLinesEntity, (purchaserequisitionlinesEntity) => purchaserequisitionlinesEntity.purchaserequisition)
+    @JoinColumn([
+        {name: 'refpurchaserequisition', referencedColumnName: 'refpurchaserequisition'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    purchaserequisitionlines: PurchaserequisitionLinesEntity[];
 }

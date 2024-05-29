@@ -19,26 +19,16 @@ import {UomInterneConversionCreateDto} from "./DTO/uom-interne-conversion-create
 import {UomInterneConversionFindDto} from "./DTO/uom-interne-conversion-find.dto";
 import {ItemsSaveDto} from "./DTO/Items-save.dto";
 import {ParametresService} from "../parametres/parametres.service";
-import {VariantSaveDto} from "./DTO/Variant-save.dto";
-import {VariantsEntity} from "../../../entities/arazan-db/items/variants.entity";
-import {VariantsFindDto} from "./DTO/variants-find.dto";
-import {UomConversionVariantCreateDto} from "./DTO/uom-conversion-variant-create.dto";
-import {UomconversionvariantEntity} from "../../../entities/arazan-db/items/uomconversionvariant.entity";
-import {UomConversionVariantFindDto} from "./DTO/uom-conversion-variant-find.dto";
 import {CategoriesService} from "../categories/categories.service";
 import {ItemsclassSaveDto} from "./DTO/Itemsclass-save.dto";
 import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entity";
 import {ItemsclassFindDto} from "./DTO/Itemsclass-find.dto";
 import {ItemtrackingEntity} from "../../../entities/arazan-db/items/itemtracking.entity";
-import {IsOptional, IsString} from "class-validator";
 import {ItemsValidityDto} from "./DTO/Items-validity.dto";
 import {MasterdataService} from "../masterdata/masterdata.service";
-import {VariantsValidityDto} from "./DTO/Variants-validity.dto";
-import {ItemsVariantValidityDto} from "./DTO/items-variant-validity.dto";
 import {ItemConversionValidityDto} from "./DTO/item-conversion-validity.dto";
 import {HelpersProvider} from "../../../helpers/providers/helpers.provider";
 import {ClassicConversionValidityDto} from "./DTO/classic-conversion-validity.dto";
-import {VariantConversionValidityDto} from "./DTO/variant-conversion-validity.dto";
 
 @Injectable({})
 export class ItemsService {
@@ -51,12 +41,8 @@ export class ItemsService {
         private readonly pricemodelRepository: Repository<PricemodelEntity>,
         @InjectRepository(UomconversionEntity)
         private readonly uomconversionRepository: Repository<UomconversionEntity>,
-        @InjectRepository(UomconversionvariantEntity)
-        private readonly uomconversionvariantRepository: Repository<UomconversionvariantEntity>,
         @InjectRepository(UomclassicconversionEntity)
         private readonly uomclassicconversionRepository: Repository<UomclassicconversionEntity>,
-        @InjectRepository(VariantsEntity)
-        private readonly variantRepository: Repository<VariantsEntity>,
         @InjectRepository(ItemclassEntity)
         private readonly itemclassRepository: Repository<ItemclassEntity>,
         @InjectRepository(ItemtrackingEntity)
@@ -189,20 +175,20 @@ export class ItemsService {
             .find({
                 where: [
                     {refitem: itemfinddto?.refitem || undefined},
-                    {refcompany: itemfinddto.refcompany},
+                    //{refcompany: itemfinddto.refcompany},
                     {item: itemfinddto?.item || undefined},
                     {searchname: itemfinddto?.searchname || undefined},
                     {barcode: itemfinddto?.barcode || undefined},
                     {itemdescription: itemfinddto?.itemdescription || undefined},
                 ],
                 relations: {
-                    pricemodel: true,
-                    headerparametre: true,
-                    unitorder: true,
-                    unitpurch: true,
-                    unitsales: true,
-                    unitinvent: true,
-                    company: true,
+                    //pricemodel: true,
+                    //headerparametre: true,
+                    //unitorder: true,
+                    //unitpurch: true,
+                    //unitsales: true,
+                    //unitinvent: true,
+                    //company: true,
                 },
                 order: {refitem: 'ASC'},
             })
@@ -302,7 +288,7 @@ export class ItemsService {
         }
 
         if (!this.helpersProvider.isEmptyObject(itemdto.parametres)) {
-            const idheaderparametre = await this.parametreService.checkaxesbycompany(itemdto.parametres, itemdto.refcompany, 'ANALYTIC');
+            const idheaderparametre = -100//await this.parametreService.checkaxesbycompany(itemdto.parametres, itemdto.refcompany, 'ANALYTIC');
             itemdto['idheaderparametre'] = Number(idheaderparametre);
         }
 
@@ -314,49 +300,10 @@ export class ItemsService {
         return await this.itemRepository
             .save(item)
             .then(async (res) => {
+                console.log('------------""""""-------',itemdto.categories)
                 if (!this.helpersProvider.isEmptyObject(itemdto.categories)) {
-                    await this.categoriesService.affectationEntityCategories(itemdto.categories, itemdto.refcompany, itemdto.refitem, 'ITEM')
+                    await this.categoriesService.affectationEntityCategories(itemdto.categories, itemdto.refcompany, itemdto.refitem, 'ITM')
                 }
-                return res;
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    // --------------------------------- UOM Conversion Management VARIANT
-    async createUomConversionVariant(uomconversionvariantDto: UomConversionVariantCreateDto) {
-        if(uomconversionvariantDto.refunitto == uomconversionvariantDto.refunitfrom){
-            const message = 'Unité de conversion identique !';
-            throw new BadRequestException(message, {cause: message, description: message,});
-        }
-        const uomconversionvariant = await this.uomconversionvariantRepository.create(uomconversionvariantDto); // transform the DTO to the entity user
-        return await this.uomconversionvariantRepository
-            .save(uomconversionvariant)
-            .then(async (res) => {
-                return await this.uomconversionvariantRepository.findOneBy(uomconversionvariantDto);
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    async lookForUomconversionVariant(uomconversionvariantfinddto: UomConversionVariantFindDto) {
-        return await this.uomconversionvariantRepository
-            .find({
-                where: {
-                    refcompany: uomconversionvariantfinddto.refcompany,
-                    id: uomconversionvariantfinddto?.id || undefined,
-                    refvariant: uomconversionvariantfinddto?.refvariant || undefined,
-                },
-                relations: {
-                    company: true,
-                    unitfrom: true,
-                    unitto: true,
-                    variant: true
-                },
-            })
-            .then(async (res) => {
                 return res;
             })
             .catch((err) => {
@@ -446,66 +393,27 @@ export class ItemsService {
             });
     }
 
-    // -------------------------------------- Variant Logistique
-    async saveVariant(variantdto: VariantSaveDto) {
-
-        if (!this.helpersProvider.isEmptyObject(variantdto.variants)) {
-            const idheadervariant = await this.parametreService.checkaxesbycompany(variantdto.variants, variantdto.refcompany, 'VARIANTLOGISTC');
-            variantdto['idheadervariant'] = Number(idheadervariant);
+    //---------------------------------------------> Item Class
+    async saveItemClass(itemclassDto: ItemsclassSaveDto) {
+        let existingItemClass = await this.itemclassRepository.findOneBy({
+            refcompany: itemclassDto.refcompany,
+            refwarehouse: itemclassDto.refwarehouse,
+            refitem: itemclassDto.refitem
+        })
+        if (existingItemClass) {
+            existingItemClass['class'] = itemclassDto.class;
+            existingItemClass['actif'] = itemclassDto.actif;
+        } else {
+            existingItemClass = new ItemclassEntity();
+            existingItemClass['refitem'] = itemclassDto.refitem;
+            existingItemClass['refwarehouse'] = itemclassDto.refwarehouse;
+            existingItemClass['refcompany'] = itemclassDto.refcompany;
+            existingItemClass['actif'] = itemclassDto.actif;
+            existingItemClass['class'] = itemclassDto.class;
         }
-
-        if ([undefined, null, ''].includes(variantdto.refvariant)) {
-            const variant = await this.findVariant({
-                refitem: variantdto.refitem,
-                idheadervariant: variantdto.idheadervariant,
-                refvariant: undefined,
-                refcompany: variantdto.refcompany,
-            });
-            if (variant.length > 0) {
-                const message = 'La variant logistique existe déja dans l\'article';
-                throw new BadRequestException(message, {cause: message, description: message,});
-            }
-            variantdto.refvariant = await this.masterdataService.generatepk('VR');
-        }
-
-
-        const variant = await this.variantRepository.create(variantdto);
-        return await this.variantRepository
-            .save(variant)
-            .then(async (res) => {
-                return await this.itemRepository
-                    .createQueryBuilder('items')
-                    .update(ItemsEntity)
-                    .set({havevariant: true})
-                    .where('refitem = :refitem', {refitem: variant.refitem})
-                    .execute()
-                    .then(async (data) => {
-                        return res;
-                    })
-                    .catch((err) => {
-                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
-                    })
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    async findVariant(variantfinddto: VariantsFindDto) {
-        return await this.variantRepository
-            .find({
-                where: [
-                    {
-                        refitem: variantfinddto?.refitem || undefined,
-                        refvariant: variantfinddto?.refvariant || undefined,
-                        idheadervariant: variantfinddto?.idheadervariant || undefined,
-                        refcompany: variantfinddto.refcompany,
-                    },
-                ],
-                relations: ['company', 'item', 'headervariant', 'headervariant.parametreslines'],
-                order: {refitem: 'ASC'},
-                select: {},
-            })
+        const itemclass = await this.itemclassRepository.create(existingItemClass);
+        return await this.itemclassRepository
+            .save(itemclass)
             .then(async (res) => {
                 return res;
             })
@@ -514,61 +422,15 @@ export class ItemsService {
             });
     }
 
-    //---------------------------------------------> Item Class
-    async saveItemClass(itemclassDto: ItemsclassSaveDto) {
-        const countVar = await this.isItemHaveVariant({
-            refitem: itemclassDto.refitem,
-            refcompany: itemclassDto.refcompany
-        });
-        if (countVar > 0 && ['', null, undefined].includes(itemclassDto.refvariant)) {
-            throw new BadRequestException('Merci de spécifier la variant', {
-                cause: 'Merci de spécifier la variant',
-                description: 'Merci de spécifier la variant',
-            });
-        } else {
-            let existingItemClass = await this.itemclassRepository.findOneBy({
-                refcompany: itemclassDto.refcompany,
-                refwarehouse: itemclassDto.refwarehouse,
-                refvariant: itemclassDto.refvariant,
-                refitem: itemclassDto.refitem
-            })
-            if (existingItemClass) {
-                existingItemClass['class'] = itemclassDto.class;
-                existingItemClass['actif'] = itemclassDto.actif;
-            } else {
-                existingItemClass = new ItemclassEntity();
-                existingItemClass['refitem'] = itemclassDto.refitem;
-                existingItemClass['refwarehouse'] = itemclassDto.refwarehouse;
-                existingItemClass['refcompany'] = itemclassDto.refcompany;
-                existingItemClass['refvariant'] = itemclassDto.refvariant;
-                existingItemClass['actif'] = itemclassDto.actif;
-                existingItemClass['class'] = itemclassDto.class;
-            }
-            const itemclass = await this.itemclassRepository.create(existingItemClass);
-            return await this.itemclassRepository
-                .save(itemclass)
-                .then(async (res) => {
-                    return res;
-                })
-                .catch((err) => {
-                    throw new BadRequestException(err.message, {cause: err, description: err.query,});
-                });
-        }
-    }
-
     async getItemClass(itemclassDto: ItemsclassFindDto) {
         const query = await this.itemclassRepository.createQueryBuilder('itemclass')
             .innerJoinAndSelect('itemclass.item', 'items')
             .innerJoinAndSelect('itemclass.warehouse', 'warehouse')
-            .leftJoinAndSelect('itemclass.variant', 'variants')
             .where('itemclass.refcompany = :refcompany', {refcompany: itemclassDto.refcompany})
             .andWhere('itemclass.refitem = :refitem', {refitem: itemclassDto.refitem})
 
         if (!['', undefined, null].includes(itemclassDto.refwarehouse)) {
             query.andWhere('itemclass.refwarehouse = :refwarehouse', {refwarehouse: itemclassDto.refwarehouse});
-        }
-        if (!['', undefined, null].includes(itemclassDto.refvariant)) {
-            query.andWhere('itemclass.refvariant = :refvariant', {refvariant: itemclassDto.refvariant})
         }
 
         return query.getMany()
@@ -608,6 +470,7 @@ export class ItemsService {
                     throw new BadRequestException(message, {cause: message, description: message,});
                 }
                 if (controlObject === 'PURCHORDER') {
+                    /**
                     if (res[0].stopedpurch) {
                         message = 'Item ' + itemDto.refitem + ' bloqué pour achat!'
 
@@ -624,56 +487,13 @@ export class ItemsService {
                             datedebut: undefined
                         })
                         if (taxeLineValue.length != 1) {
-                            message = 'Valeur de taxe non paramétrée ' + res[0].reftaxepurchase + ' !'
+                            message = ''//Valeur de taxe non paramétrée ' + res[0].reftaxepurchase + ' !'
 
                             throw new BadRequestException(message, {cause: message, description: message,});
                         }
                     }
+                     **/
                 }
-                return res;
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    async isVariantValid(variantDto: VariantsValidityDto, controlObject) {
-        return await this.findVariant({
-            refitem: variantDto.refitem,
-            refvariant: variantDto.refvariant,
-            refcompany: variantDto.refcompany,
-            idheadervariant: undefined,
-        })
-            .then(async (res) => {
-                let message;
-                if (res.length != 1) {
-                    message = 'Variant not founded ' + variantDto.refvariant + ' !'
-                    throw new BadRequestException(message, {cause: message, description: message,});
-                }
-                if (controlObject === 'PURCHORDER') {
-                    if (res[0].stopedpurch) {
-                        message = 'Variant bloqué pour achat ' + variantDto.refvariant + ' !'
-                        throw new BadRequestException(message, {cause: message, description: message,});
-                    }
-                    if (res[0].item.stopedpurch) {
-                        message = 'Item ' + res[0].item.refitem + ' bloqué pour achat!'
-                        throw new BadRequestException(message, {cause: message, description: message,});
-                    }
-                }
-                return res;
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    async isItemHaveVariant(itemVariantDto: ItemsVariantValidityDto) {
-        return await this.variantRepository
-            .countBy({
-                refitem: itemVariantDto.refitem,
-                refcompany: itemVariantDto.refcompany,
-            })
-            .then(async (res) => {
                 return res;
             })
             .catch((err) => {
@@ -739,44 +559,6 @@ export class ItemsService {
             .then(async (res) => {
                 console.log('---> res uomclassicconversionRepository', res);
                 return res;
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    async isVariantConversionValid(conversionVariantValidityDto: VariantConversionValidityDto) {
-        return await this.uomconversionvariantRepository.count({
-                where:[
-                    {
-                        refvariant: conversionVariantValidityDto.refvariant,
-                        refcompany: conversionVariantValidityDto.refcompany,
-                        refunitfrom: conversionVariantValidityDto.refunitfrom,
-                        refunitto: conversionVariantValidityDto.refunitto,
-                        actif: true,
-                    },
-                    {
-                        refvariant: conversionVariantValidityDto.refvariant,
-                        refcompany: conversionVariantValidityDto.refcompany,
-                        refunitto: conversionVariantValidityDto.refunitfrom,
-                        refunitfrom: conversionVariantValidityDto.refunitto,
-                        actif: true,
-                    }
-                ]
-        })
-            .then(async (res) => {
-                let message;
-                const classicCount = await this.isClassicConversionValid({
-                    refcompany: conversionVariantValidityDto.refcompany,
-                    refunitfrom: conversionVariantValidityDto.refunitfrom,
-                    refunitto: conversionVariantValidityDto.refunitto
-                });
-                if ((res + classicCount) <= 0) {
-                    message = 'Item conversion ou classic conversion introuvable ' + conversionVariantValidityDto.refvariant + ' !'
-                    throw new BadRequestException(message, {cause: message, description: message,});
-                } else {
-                    return (res + classicCount);
-                }
             })
             .catch((err) => {
                 throw new BadRequestException(err.message, {cause: err, description: err.query,});

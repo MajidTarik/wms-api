@@ -6,7 +6,6 @@ import {CategoriesAffectationDto} from "../../administration/categories/DTO/cate
 import {PurchaserequisitionChangeStatutDto} from "./DTO/purchaserequisition-change-statut.dto";
 import {PurchaserequisitionLinesFindDto} from "./DTO/purchaserequisition-lines-find.dto";
 import {PurchaserequisitionLinesNewDto} from "./DTO/purchaserequisition-lines-new.dto";
-import {PurchaserequisitionLinesVariantUpsertDto} from "./DTO/purchaserequisition-lines-variant-upsert.dto";
 import {PurchaserequisitionLinesQtyUpsertDto} from "./DTO/purchaserequisition-lines-qty-upsert.dto";
 import {PurchaserequisitionLinesPriceUpsertDto} from "./DTO/purchaserequisition-lines-price-upsert.dto";
 import {PurchaserequisitionLinesItemUpdateDto} from "./DTO/purchaserequisition-lines-item-update.dto";
@@ -105,24 +104,6 @@ export class PurchaserequisitionController {
     async savePurchReqLineItem(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesItemUpdateDto) {
         try {
             return await this.purchReqService.upsertPurchReqLineItem(purchaserequisitionlinesFindDto);
-        } catch (e) {
-            throw new HttpException(
-                {
-                    status: e.status,
-                    error: e.response.error,
-                },
-                e.status,
-                {
-                    cause: e,
-                },
-            );
-        }
-    }
-
-    @Post('upsertpurchreqlinevariant')
-    async upsertPurchReqLineVariant(@Body() purchaserequisitionlinesFindDto: PurchaserequisitionLinesVariantUpsertDto) {
-        try {
-            return await this.purchReqService.upsertPurchReqLineVariant(purchaserequisitionlinesFindDto);
         } catch (e) {
             throw new HttpException(
                 {

@@ -8,10 +8,10 @@ import { Strategy } from 'passport-local';
 export class PassportLocalStrategy extends PassportStrategy(Strategy){
 
   constructor(private authService: AuthentificationService) {
-    super();
+    super({ passReqToCallback: true });
   }
-  async validate(username: string, password: string): Promise<any> {
-    const loginDto: LoginDto = { matricule: username, pwd: password };
+  async validate(req: Request, username: string, password: string): Promise<any> {
+    const loginDto: LoginDto = { matricule: username, pwd: password, reforganisation: req.body['reforganisation'] };
     const user = await this.authService.validateUser(loginDto);
     if(!user) {
       throw new UnauthorizedException();

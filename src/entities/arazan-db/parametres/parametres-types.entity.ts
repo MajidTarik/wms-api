@@ -1,17 +1,10 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
+  OneToMany,
   PrimaryColumn,
-  UpdateDateColumn
 } from "typeorm";
-import { UserEntity } from '../users/user.entity';
 import { ParametresEntity } from './parametres.entity';
-import { CompanyEntity } from '../cartography/company.entity';
-import { ParametresLineEntity } from "./parametres-line.entity";
 
 @Entity('parametrestypes')
 export class ParametresTypesEntity {

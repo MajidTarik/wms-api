@@ -1,56 +1,68 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryColumn,
+    UpdateDateColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
-import { CompanyEntity } from '../cartography/company.entity';
-import { UnitsEntity } from './units.entity';
-import { ItemsEntity } from './items.entity';
+import {CompanyEntity} from '../cartography/company.entity';
+import {UnitsEntity} from './units.entity';
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('uomclassicconversion')
 export class UomclassicconversionEntity {
-  @PrimaryColumn()
-  refcompany: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @PrimaryColumn()
-  refunitfrom: string;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @PrimaryColumn()
-  refunitto: string;
+    @PrimaryColumn()
+    refunitfrom: string;
 
-  @Column({type: "decimal", precision: 7, scale: 2, default: 0})
-  coefficient: number;
+    @PrimaryColumn()
+    refunitto: string;
 
-  @Column()
-  actif: boolean;
+    @Column({type: "decimal", precision: 7, scale: 2, default: 0})
+    coefficient: number;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  datetimecreation: Date;
+    @Column()
+    actif: boolean;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  datetimelastupdate: Date;
+    @CreateDateColumn({type: 'timestamptz'})
+    datetimecreation: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
-  @JoinColumn({ name: 'refcompany' })
-  company: CompanyEntity;
+    @UpdateDateColumn({type: 'timestamptz'})
+    datetimelastupdate: Date;
 
-  @ManyToOne(() => UnitsEntity, (unitsentity) => unitsentity.refunit, {nullable: false})
-  @JoinColumn([
-    { name: 'refunitfrom', referencedColumnName: 'refunit' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  unitfrom: UnitsEntity;
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @ManyToOne(() => UnitsEntity, (unitsentity) => unitsentity.refunit, {nullable: false})
-  @JoinColumn([
-    { name: 'refunitto', referencedColumnName: 'refunit' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  unitto: UnitsEntity;
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
+
+    @ManyToOne(() => UnitsEntity, (unitsentity) => unitsentity.refunit, {nullable: false})
+    @JoinColumn([
+        {name: 'refunitfrom', referencedColumnName: 'refunit'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    unitfrom: UnitsEntity;
+
+    @ManyToOne(() => UnitsEntity, (unitsentity) => unitsentity.refunit, {nullable: false})
+    @JoinColumn([
+        {name: 'refunitto', referencedColumnName: 'refunit'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    unitto: UnitsEntity;
 }

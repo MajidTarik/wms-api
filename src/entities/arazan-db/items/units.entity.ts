@@ -3,18 +3,20 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
+  ManyToOne,
   PrimaryColumn,
   UpdateDateColumn
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
 import { CompanyEntity } from '../cartography/company.entity';
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('units')
 export class UnitsEntity {
   @PrimaryColumn()
   refunit: string;
+
+  @PrimaryColumn()
+  reforganisation: string;
 
   @PrimaryColumn()
   refcompany: string;
@@ -31,7 +33,16 @@ export class UnitsEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   datetimelastupdate: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
+  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+  @JoinColumn([
+    { name: 'refcompany', referencedColumnName: 'refcompany'},
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
   company: CompanyEntity;
+
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
 }

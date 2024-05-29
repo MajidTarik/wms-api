@@ -1,21 +1,14 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn
+    Column,
+    Entity,
+    PrimaryColumn,
 } from 'typeorm';
-import { UserEntity } from '../users/user.entity';
-import { CompanyEntity } from '../cartography/company.entity';
 
 @Entity('itemtracking')
 export class ItemtrackingEntity {
-  @PrimaryColumn()
-  refitemtracking: string;
+    @PrimaryColumn()
+    refitemtracking: string;
 
-  @Column()
-  itemtracking: string;
+    @Column()
+    itemtracking: string;
 }

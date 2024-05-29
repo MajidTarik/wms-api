@@ -1,7 +1,7 @@
-import {BadRequestException, Injectable} from '@nestjs/common';
+import {BadRequestException, Body, Injectable} from '@nestjs/common';
 import {CompanyCreateDto} from './DTO/company-create.dto';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Column, Like, Repository} from 'typeorm';
+import {Column, JoinColumn, Like, ManyToOne, Repository} from 'typeorm';
 import {CompanyEntity} from '../../../entities/arazan-db/cartography/company.entity';
 import {CompanyFindDto} from './DTO/company-find.dto';
 import {SitegeographicFindDto} from "./DTO/sitegeographic-find.dto";
@@ -21,10 +21,23 @@ import {AisleFindDto} from "./DTO/aisle-find.dto";
 import {AisleEntity} from "../../../entities/arazan-db/cartography/aisle.entity";
 import {AisleSaveDto} from "./DTO/aisle-save.dto";
 import {FurnituretypeEntity} from "../../../entities/arazan-db/cartography/furnituretype.entity";
-import {Abcclass} from "../../../helpers/abcclass";
 import {LocationEntity} from "../../../entities/arazan-db/cartography/location.entity";
 import {LocationFindDto} from "./DTO/location-find.dto";
 import {LocationSaveDto} from "./DTO/location-save.dto";
+import {HelpersProvider} from "../../../helpers/providers/helpers.provider";
+import {AddressTypeEntity} from "../../../entities/arazan-db/cartography/address-type.entity";
+import {CountryEntity} from "../../../entities/arazan-db/cartography/country.entity";
+import {CityFindDto} from "./DTO/city-find.dto";
+import {CityEntity} from "../../../entities/arazan-db/cartography/city.entity";
+import {AddressSaveDto} from "./DTO/address-save.dto";
+import {AddressEntity} from "../../../entities/arazan-db/cartography/address.entity";
+import {AddressFindDto} from "./DTO/address-find.dto";
+import {MasterdataService} from "../masterdata/masterdata.service";
+import {AddressAffectedFindDto} from "./DTO/address-affected-find.dto";
+import {AddressAttachSaveDto} from "./DTO/address-attach-save.dto";
+import {AddressSitegeographicsEntity} from "../../../entities/arazan-db/cartography/address-sitegeographics.entity";
+import {AddressWarehousesEntity} from "../../../entities/arazan-db/cartography/address-warehouses.entity";
+import {hash} from "typeorm/util/StringUtils";
 
 @Injectable()
 export class WhCartographyService {
@@ -43,7 +56,27 @@ export class WhCartographyService {
         private readonly fournituretypeRepository: Repository<FurnituretypeEntity>,
         @InjectRepository(LocationEntity)
         private readonly locationRepository: Repository<LocationEntity>,
+        @InjectRepository(AddressTypeEntity)
+        private readonly addresstypeRepository: Repository<AddressTypeEntity>,
+        @InjectRepository(CountryEntity)
+        private readonly countryRepository: Repository<CountryEntity>,
+        @InjectRepository(CityEntity)
+        private readonly cityRepository: Repository<CityEntity>,
+
+        @InjectRepository(AddressEntity)
+        private readonly addressRepository: Repository<AddressEntity>,
+
+        @InjectRepository(AddressSitegeographicsEntity)
+        private readonly addressSitegeographicsRepository: Repository<AddressSitegeographicsEntity>,
+
+        @InjectRepository(AddressWarehousesEntity)
+        private readonly addressWarehouseRepository: Repository<AddressWarehousesEntity>,
+
         private parametreService: ParametresService,
+
+        private masterdataService: MasterdataService,
+
+        private helpersProvider: HelpersProvider,
     ) {
     }
 
@@ -68,6 +101,7 @@ export class WhCartographyService {
                     {
                         refcompany: companyDto?.refcompany || Like('%'),
                         company: companyDto?.company || undefined,
+                        reforganisation: companyDto.reforganisation,
                     },
                 ],
                 order: {refcompany: 'ASC'},
@@ -88,6 +122,7 @@ export class WhCartographyService {
                     {
                         refcompany: companyDto?.refcompany || Like('%'),
                         company: companyDto?.company || undefined,
+                        reforganisation: companyDto.reforganisation,
                     },
                 ],
                 order: {refcompany: 'ASC'},
@@ -103,7 +138,15 @@ export class WhCartographyService {
 
     async showCompany(companydto) {
         return await this.companyRepository
-            .findOneBy({refcompany: companydto.refcompany})
+            .findOne({
+                where: {
+                    refcompany: companydto.refcompany,
+                    reforganisation: companydto.reforganisation,
+                },
+                relations: {
+                    currency: true,
+                }
+            })
             .then((res) => {
                 return res;
             })
@@ -114,7 +157,10 @@ export class WhCartographyService {
 
     async deleteCompany(companydto) {
         return await this.companyRepository
-            .findOneBy({refcompany: companydto.refcompany})
+            .findOneBy({
+                refcompany: companydto.refcompany,
+                reforganisation: companydto.reforganisation
+            })
             .then(async (res) => {
                 if ([undefined, null].includes(res)) {
                     throw new BadRequestException(`Objet introuvable ${companydto.refcompany}.`, {
@@ -146,6 +192,7 @@ export class WhCartographyService {
                         refsitegeographic: sitegeographicDto?.refsitegeographic || undefined,
                         sitegeographic: sitegeographicDto?.sitegeographic || undefined,
                         refcompany: sitegeographicDto.refcompany,
+                        reforganisation: sitegeographicDto.reforganisation,
                     },
                 ],
                 order: {refsitegeographic: 'ASC'},
@@ -160,9 +207,10 @@ export class WhCartographyService {
     }
 
     async createSitegeographic(sitegeographicDto: SitegeographicCreateDto) {
-        const idheaderparametre = await this.parametreService.checkaxesbycompany(sitegeographicDto.parametres, sitegeographicDto.refcompany, sitegeographicDto.reftypeparametre)
-        //parametreListe: object, refcompany: string, reftypeparametre: string
-        sitegeographicDto['idheaderparametre'] = Number(idheaderparametre);
+        if (!this.helpersProvider.isEmptyObject(sitegeographicDto.parametres)) {
+            const idheaderparametre = await this.parametreService.checkaxesbycompany(sitegeographicDto.reforganisation, sitegeographicDto.parametres, sitegeographicDto.refcompany, 'ANALYTIC')
+            sitegeographicDto['idheaderparametre'] = Number(idheaderparametre);
+        }
         const sitegeographic = await this.sitegeographicRepository.create(sitegeographicDto);
         return await this.sitegeographicRepository
             .save(sitegeographic)
@@ -181,6 +229,7 @@ export class WhCartographyService {
         return await this.sitegeographicRepository
             .findOneBy({
                 refcompany: sitegeographicDto.refcompany,
+                reforganisation: sitegeographicDto.reforganisation,
                 refsitegeographic: sitegeographicDto.refsitegeographic
             })
             .then((res) => {
@@ -199,34 +248,15 @@ export class WhCartographyService {
                     {
                         refwarehouse: warehouseDto?.refwarehouse || undefined,
                         warehouse: warehouseDto?.warehouse || undefined,
+                        refsitegeographic: warehouseDto?.refsitegeographic || undefined,
                         refcompany: warehouseDto.refcompany,
+                        reforganisation: warehouseDto.reforganisation,
                     },
                 ],
                 order: {refwarehouse: 'ASC'},
                 select: {refwarehouse: true, warehouse: true, actif: true, refcompany: true, refsitegeographic: true},
             })
-            .then(async (res) => {
-                return res;
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    async lookForWarehouse(warehouseDto: WarehouseFindDto) {
-        return await this.warehouseRepository
-            .find({
-                where: [
-                    {
-                        refwarehouse: warehouseDto?.refwarehouse || undefined,
-                        warehouse: warehouseDto?.warehouse || undefined,
-                        refcompany: warehouseDto.refcompany,
-                    },
-                ],
-                order: {refsitegeographic: 'ASC'},
-                select: {refwarehouse: true, warehouse: true, actif: true, refcompany: true, refsitegeographic: true},
-            })
-            .then(async (res) => {
+            .then((res) => {
                 return res;
             })
             .catch((err) => {
@@ -235,13 +265,21 @@ export class WhCartographyService {
     }
 
     async createWarehouse(warehouseDto: WarehouseCreateDto) {
-        const idheaderparametre = await this.parametreService.checkaxesbycompany(warehouseDto.parametres, warehouseDto.refcompany, warehouseDto.reftypeparametre)
-        warehouseDto['idheaderparametre'] = Number(idheaderparametre);
+        if (!this.helpersProvider.isEmptyObject(warehouseDto.parametres)) {
+            const idheaderparametre = await this.parametreService.checkaxesbycompany(warehouseDto.reforganisation, warehouseDto.parametres, warehouseDto.refcompany, 'ANALYTIC')
+            warehouseDto['idheaderparametre'] = Number(idheaderparametre);
+        }
+
         const warehouse = await this.warehouseRepository.create(warehouseDto);
         return await this.warehouseRepository
             .save(warehouse)
             .then(async (res) => {
-                return await this.warehouseRepository.findOneBy({refcompany: warehouse.refcompany, refwarehouse: warehouse.refwarehouse, refsitegeographic: warehouse.refsitegeographic});
+                return await this.warehouseRepository.findOneBy({
+                    refcompany: warehouse.refcompany,
+                    reforganisation: warehouse.reforganisation,
+                    refwarehouse: warehouse.refwarehouse,
+                    refsitegeographic: warehouse.refsitegeographic
+                });
             })
             .catch((err) => {
                 throw new BadRequestException(err.message, {cause: err, description: err.query,});
@@ -254,10 +292,16 @@ export class WhCartographyService {
                 where: {
                     refcompany: warehouseDto.refcompany,
                     refwarehouse: warehouseDto?.refwarehouse || undefined,
+                    reforganisation: warehouseDto.reforganisation,
                 },
-                relations: {
-                    sitegeographic: true,
-                }
+                relations: [
+                    'sitegeographic',
+                    'defaultexpeditionlocation.aisle.area',
+                    'defaultreceivelocation.aisle.area',
+                    'defaultgoodsfabricationlocation.aisle.area',
+                    'defaultrawmaterialconsumptionlocation.aisle.area',
+                    'defaultreturnlocation.aisle.area',
+                ]
             })
             .then((res) => {
                 return res;
@@ -276,6 +320,8 @@ export class WhCartographyService {
                         refarea: areaDto?.refarea || undefined,
                         area: areaDto?.area || undefined,
                         refcompany: areaDto.refcompany,
+                        reforganisation: areaDto.reforganisation,
+                        refwarehouse: areaDto?.refwarehouse || undefined,
                     },
                 ],
                 order: {refarea: 'ASC'},
@@ -297,6 +343,7 @@ export class WhCartographyService {
                         refarea: areaDto?.refarea || undefined,
                         area: areaDto?.area || undefined,
                         refcompany: areaDto.refcompany,
+                        reforganisation: areaDto.reforganisation,
                     },
                 ],
                 order: {refarea: 'ASC'},
@@ -311,9 +358,10 @@ export class WhCartographyService {
     }
 
     async createArea(areaDto: AreaCreateDto) {
-        const idheaderparametre = await this.parametreService.checkaxesbycompany(areaDto.parametres, areaDto.refcompany, areaDto.reftypeparametre);
-        areaDto['idheaderparametre'] = Number(idheaderparametre);
         const area = await this.areaRepository.create(areaDto);
+        if ([undefined, null, ''].includes(areaDto.refarea)) {
+            area.refarea = await this.masterdataService.generatepk('AE');
+        }
         return await this.areaRepository
             .save(area)
             .then(async (res) => {
@@ -327,7 +375,11 @@ export class WhCartographyService {
     async showArea(areaDto: AreaShowDto) {
         return await this.areaRepository
             .findOne({
-                where: {refcompany: areaDto.refcompany, refarea: areaDto.refarea},
+                where: {
+                    refcompany: areaDto.refcompany,
+                    refarea: areaDto.refarea,
+                    reforganisation: areaDto.reforganisation,
+                },
                 relations: {warehouse: true}
             })
             .then((res) => {
@@ -356,7 +408,13 @@ export class WhCartographyService {
             .innerJoinAndSelect('aisle.furnituretype', 'furnituretype')
             .innerJoinAndSelect('aisle.area', 'area')
             .innerJoinAndSelect('area.warehouse', 'warehouse')
-            .where('aisle.refcompany = :refcompany', {refcompany: aisleDto.refcompany})
+            .where('aisle.refcompany = :refcompany and aisle.reforganisation = :reforganisation', {
+                refcompany: aisleDto.refcompany,
+                reforganisation: aisleDto.reforganisation,
+            })
+        if (aisleDto?.refarea) {
+            queryBuilder.andWhere('aisle.refarea = :refarea', {refarea: aisleDto?.refarea || undefined})
+        }
 
         if (aisleDto?.refaisle) {
             queryBuilder.andWhere('aisle.refaisle = :refaisle', {refaisle: aisleDto?.refaisle || undefined})
@@ -377,8 +435,13 @@ export class WhCartographyService {
         // Verify that X, Y and Z are > 0
         if ((aisleDto.xshelf > 0) && (aisleDto.yfloor > 0) && (aisleDto.zsection > 0)) {
             // Check if the aisle is all ready exist in data base.
-            const existingAisle = await this.aisleRepository.findOneBy({refaisle: aisleDto.refaisle})
-            if (!existingAisle) {
+            console.log(aisleDto);
+            const existingAisle = await this.aisleRepository.findOneBy({
+                refaisle: aisleDto.refaisle,
+                refcompany: aisleDto.refcompany,
+                reforganisation: aisleDto.reforganisation,
+            })
+            if (!existingAisle || [undefined, null, ''].includes(aisleDto.refaisle)) {
                 // Create all locations from (1,1,1) to (X,Y,Z)
                 locations = await this.createLocationFromAxes(
                     aisleDto.prefix, aisleDto.separator,
@@ -390,9 +453,9 @@ export class WhCartographyService {
             } else {
                 // If the aisle is all ready exist check if one of the X and Y is supperior than the existing X, Y in the data base. Also the Z axe must be the same.
                 if ((aisleDto.xshelf < existingAisle.xshelf || aisleDto.yfloor < existingAisle.yfloor || aisleDto.zsection != existingAisle.zsection)) {
-                    throw new BadRequestException('Veulliez verifier l\'axe Z', {
-                        cause: 'Veulliez verifier l\'axe Z',
-                        description: 'Veulliez verifier l\'axe Z',
+                    throw new BadRequestException('Veulliez verifier les nouvelles valeur des axes!', {
+                        cause: 'Veulliez verifier les nouvelles valeur des axes!',
+                        description: 'Veulliez verifier les nouvelles valeur des axes!',
                     });
                 } else if ((aisleDto.xshelf > existingAisle.xshelf || aisleDto.yfloor > existingAisle.yfloor) && (aisleDto.zsection == existingAisle.zsection)) {
                     // Create the supplement locations
@@ -425,6 +488,10 @@ export class WhCartographyService {
         }
         // If all is well, save the aisle entity
         const aisle = await this.aisleRepository.create(aisleDto);
+        if ([undefined, null, ''].includes(aisleDto.refaisle)) {
+            aisle.refaisle = await this.masterdataService.generatepk('AL');
+        }
+
         return await this.aisleRepository
             .save(aisle)
             .then(async (res) => {
@@ -432,10 +499,16 @@ export class WhCartographyService {
                 await locations.forEach(location => {
                     location.refaisle = res.refaisle;
                     location.refcompany = res.refcompany;
+                    location.reforganisation = res.reforganisation;
                 });
                 return await this.locationRepository.save(locations)
                     .then(async (res) => {
-                            return await this.aisleRepository.findOneBy({refcompany: aisle.refcompany, refaisle: aisle.refaisle, refarea: aisle.refarea});
+                            return await this.aisleRepository.findOneBy({
+                                refcompany: aisle.refcompany,
+                                reforganisation: aisle.reforganisation,
+                                refaisle: aisle.refaisle,
+                                refarea: aisle.refarea
+                            });
                         }
                     )
                     .catch((err) => {
@@ -507,8 +580,10 @@ export class WhCartographyService {
         const queryBuilder = this.locationRepository
             .createQueryBuilder('location')
             .innerJoinAndSelect('location.aisle', 'aisle')
+            .innerJoinAndSelect('aisle.area', 'area')
             .where('location.refcompany = :refcompany', {refcompany: locationDto.refcompany})
             .andWhere('location.refaisle = :refaisle', {refaisle: locationDto.refaisle})
+            .andWhere('location.reforganisation = :reforganisation', {reforganisation: locationDto.reforganisation})
 
         if (![undefined, null, ''].includes(locationDto.reflocation)) {
             queryBuilder.andWhere('location.reflocation = :reflocation', {reflocation: locationDto.reflocation})
@@ -529,6 +604,7 @@ export class WhCartographyService {
                 reflocation: locationDto.reflocation,
                 refcompany: locationDto.refcompany,
                 refaisle: locationDto.refaisle,
+                reforganisation: locationDto.reforganisation,
             }
         })
             .then(async (locationLigne) => {
@@ -539,7 +615,8 @@ export class WhCartographyService {
                                 const updatedLocation = await this.getLocationsByAisle({
                                     reflocation: res.reflocation,
                                     refcompany: res.refcompany,
-                                    refaisle: res.refaisle
+                                    refaisle: res.refaisle,
+                                    reforganisation: res.reforganisation,
                                 });
                                 return updatedLocation[0]
                             }
@@ -559,5 +636,234 @@ export class WhCartographyService {
             })
     }
 
+    async findAddressTypes() {
+        return await this.addresstypeRepository
+            .find()
+            .then((res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
 
+    async findCountries() {
+        return await this.countryRepository
+            .find()
+            .then((res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
+    async findCitiesByCountry(cityDto: CityFindDto) {
+        return await this.cityRepository
+            .findBy({
+                refcountry: cityDto.refcountry
+            })
+            .then((res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
+    async saveAddress(addressDto: AddressSaveDto) {
+        if ([undefined, null, ''].includes(addressDto.refaddress))
+            addressDto.refaddress = await this.masterdataService.generatepk('ADR');
+        const area = await this.addressRepository.create(addressDto);
+        return await this.addressRepository
+            .save(area)
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
+    async findaddress(addressDto: AddressFindDto) {
+        return await this.addressRepository.find({
+            where: [{
+                refcompany: addressDto.refcompany,
+                reforganisation: addressDto.reforganisation,
+                refaddress: addressDto?.refaddress || undefined,
+            }],
+            relations: {city: true, country: true}
+        })
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
+    async getAddressByControlObject(addressaffectedfindDto: AddressAffectedFindDto) {
+        const controlobject = await this.masterdataService.findControlobject({
+            refcontrolobject : undefined,
+            okforaddress: undefined,
+            okforgroupcategories: undefined,
+            okforworkflows: undefined,
+            prefix: addressaffectedfindDto.prefix,
+        });
+
+        let buildedQuery;
+
+        if (!controlobject || controlobject.length < 1) {
+            throw new BadRequestException('Merci d envoyer au moins un critére valide l\'object contrôler est invalide', {});
+        }
+
+        if (!controlobject[0].okforaddress) {
+            console.log('object non autoriser pour le contrôle d\'address')
+            throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
+        } else {
+            if (controlobject[0].prefix === 'ST') {
+                buildedQuery = await this.addressSitegeographicsRepository
+                    .createQueryBuilder('addresssitegeographics')
+                    .innerJoinAndSelect('addresssitegeographics.address', 'address')
+                    .innerJoinAndSelect('address.city', 'city')
+                    .innerJoinAndSelect('address.country', 'country')
+                    .innerJoinAndSelect('addresssitegeographics.addresstype', 'addresstype')
+                    .where('addresssitegeographics.refsitegeographic = :refsitegeographic', { refsitegeographic: addressaffectedfindDto.refObject })
+            } else if (controlobject[0].prefix === 'WH') {
+                buildedQuery = await this.addressWarehouseRepository
+                    .createQueryBuilder('addresswarehouses')
+                    .innerJoinAndSelect('addresswarehouses.address', 'address')
+                    .innerJoinAndSelect('address.city', 'city')
+                    .innerJoinAndSelect('address.country', 'country')
+                    .innerJoinAndSelect('addresswarehouses.addresstype', 'addresstype')
+                    .where('addresswarehouses.refwarehouse = :refwarehouse', { refwarehouse: addressaffectedfindDto.refObject })
+            } else {
+                throw new BadRequestException('l\'object contrôler est introuvable', {});
+            }
+            return await buildedQuery
+                .getMany()
+                .then(async (res) => {
+                    return res;
+                })
+                .catch((err) => {
+                    throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                });
+        }
+    }
+
+    async attachAddressToObject(addressattachsaveDto: AddressAttachSaveDto) {
+        const controlobject = await this.masterdataService.findControlobject({
+            prefix :addressattachsaveDto.prefix,
+            okforaddress: undefined,
+            okforgroupcategories: undefined,
+            okforworkflows: undefined,
+            refcontrolobject: undefined,
+        });
+
+        if (!controlobject || controlobject.length < 1) {
+            throw new BadRequestException('Merci d envoyer au moins un critére valide l\'object contrôler est invalide', {});
+        }
+
+        if (!controlobject[0].okforaddress) {
+            throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
+        } else {
+            if (controlobject[0].prefix === 'ST') {
+                const addresssitegeographics = await this.addressSitegeographicsRepository.create({
+                    refcompany: addressattachsaveDto.refcompany,
+                    reforganisation: addressattachsaveDto.reforganisation,
+                    refaddresstype: addressattachsaveDto.refaddresstype,
+                    refaddress: addressattachsaveDto.refaddress,
+                    refsitegeographic: addressattachsaveDto.refObject
+                });
+                return await this.addressSitegeographicsRepository
+                    .save(addresssitegeographics)
+                    .then(async (res) => {
+                        return res;
+                    })
+                    .catch((err) => {
+                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                    });
+            } else if (controlobject[0].prefix === 'WH') {
+                const addresswarehouses = await this.addressWarehouseRepository.create({
+                    refcompany: addressattachsaveDto.refcompany,
+                    reforganisation: addressattachsaveDto.reforganisation,
+                    refaddresstype: addressattachsaveDto.refaddresstype,
+                    refaddress: addressattachsaveDto.refaddress,
+                    refwarehouse: addressattachsaveDto.refObject
+                });
+                return await this.addressWarehouseRepository
+                    .save(addresswarehouses)
+                    .then(async (res) => {
+                        return res;
+                    })
+                    .catch((err) => {
+                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                    });
+            } else {
+                throw new BadRequestException('l\'object contrôler est introuvable', {});
+            }
+        }
+    }
+
+    async detachedAddressFromObject(addressattachsaveDto: AddressAttachSaveDto) {
+        const controlobject = await this.masterdataService.findControlobject({
+            refcontrolobject : undefined,
+            okforaddress: undefined,
+            okforgroupcategories: undefined,
+            okforworkflows: undefined,
+            prefix: addressattachsaveDto.prefix
+        });
+
+        if (!controlobject || controlobject.length < 1) {
+            throw new BadRequestException('Merci d envoyer au moins un critére valide l\'object contrôler est invalide', {});
+        }
+
+        if (!controlobject[0].okforaddress) {
+            throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
+        } else {
+            if (controlobject[0].prefix === 'ST') {
+                return await this.addressSitegeographicsRepository.findBy({
+                    refcompany: addressattachsaveDto.refcompany,
+                    reforganisation: addressattachsaveDto.reforganisation,
+                    refaddresstype: addressattachsaveDto.refaddresstype,
+                    refaddress: addressattachsaveDto.refaddress,
+                    refsitegeographic: addressattachsaveDto.refObject
+                })
+                    .then(async (res) => {
+                        return await this.addressSitegeographicsRepository.remove(res)
+                            .then(async (res) => {
+                                return res;
+                            })
+                            .catch((err) => {
+                                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                            });
+                    })
+                    .catch((err) => {
+                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                    });
+            } else if (controlobject[0].prefix === 'WH') {
+                return await this.addressWarehouseRepository.findBy({
+                    refcompany: addressattachsaveDto.refcompany,
+                    reforganisation: addressattachsaveDto.reforganisation,
+                    refaddresstype: addressattachsaveDto.refaddresstype,
+                    refaddress: addressattachsaveDto.refaddress,
+                    refwarehouse: addressattachsaveDto.refObject
+                })
+                    .then(async (res) => {
+                        return await this.addressWarehouseRepository.remove(res)
+                            .then(async (res) => {
+                                return res;
+                            })
+                            .catch((err) => {
+                                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                            });
+                    })
+                    .catch((err) => {
+                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                    });
+            } else {
+                throw new BadRequestException('l\'object contrôler est introuvable', {});
+            }
+        }
+    }
 }

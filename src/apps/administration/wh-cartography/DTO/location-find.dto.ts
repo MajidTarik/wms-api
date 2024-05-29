@@ -7,6 +7,9 @@ export class LocationFindDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   @IsOptional()
   readonly reflocation: string;
 }

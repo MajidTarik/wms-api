@@ -8,10 +8,10 @@ import {
   PrimaryColumn,
   UpdateDateColumn
 } from "typeorm";
-import { UserEntity } from '../users/user.entity';
 import { ParametresEntity } from './parametres.entity';
 import { CompanyEntity } from '../cartography/company.entity';
 import { ParametresLineEntity } from "./parametres-line.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('parametresattributs')
 export class ParametresAttributEntity {
@@ -23,6 +23,9 @@ export class ParametresAttributEntity {
 
   @PrimaryColumn()
   value: string;
+
+  @PrimaryColumn()
+  reforganisation: string;
 
   @Column()
   actif: boolean;
@@ -39,15 +42,23 @@ export class ParametresAttributEntity {
   @ManyToOne(() => ParametresEntity, (parametresentity) => parametresentity.parametresattributs, {nullable: false})
   @JoinColumn([
     { name: 'refcompany', referencedColumnName: 'refcompany' },
-    { name: 'refparametre', referencedColumnName: 'refparametre' }
+    { name: 'refparametre', referencedColumnName: 'refparametre' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
   parametre: ParametresEntity;
 
-  @OneToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
   @JoinColumn([
-    { name: 'refcompany', referencedColumnName: 'refcompany' }
+    { name: 'refcompany', referencedColumnName: 'refcompany'},
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
   company: CompanyEntity;
+
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
 
   @OneToMany(() => ParametresLineEntity, (parametreslineentity) => parametreslineentity.parametresattributs)
   parametreslines: ParametresLineEntity[];

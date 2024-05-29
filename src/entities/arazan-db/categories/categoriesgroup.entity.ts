@@ -1,60 +1,84 @@
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
-  PrimaryColumn,
-  UpdateDateColumn
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne, OneToMany,
+    OneToOne,
+    PrimaryColumn,
+    UpdateDateColumn
 } from 'typeorm';
-import { CompanyEntity } from '../cartography/company.entity';
-import { CategoriesEntity } from "./categories.entity";
-import { CategoriesaffectationsEntity } from "./categoriesaffectations.entity";
-import { ControlobjectEntity } from "../masterdata/controlobject.entity";
+import {CompanyEntity} from '../cartography/company.entity';
+import {CategoriesEntity} from "./categories.entity";
+import {ControlobjectEntity} from "../masterdata/controlobject.entity";
+import {CategoriesvendorsEntity} from "./categoriesvendors.entity";
+import {CategoriesitemsEntity} from "./categoriesitems.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('categoriesgroup')
 export class CategoriesgroupEntity {
-  @PrimaryColumn()
-  refcategoriesgroup: string;
+    @PrimaryColumn()
+    refcategoriesgroup: string;
 
-  @PrimaryColumn()
-  refcompany: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @Column()
-  categoriesgroup: string;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @Column()
-  refcontrolobject: string;
+    @Column()
+    categoriesgroup: string;
 
-  @Column()
-  actif: boolean;
+    @Column()
+    refcontrolobject: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  datetimecreation: Date;
+    @Column()
+    actif: boolean;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  datetimelastupdate: Date;
+    @CreateDateColumn({type: 'timestamptz'})
+    datetimecreation: Date;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
-  company: CompanyEntity;
+    @UpdateDateColumn({type: 'timestamptz'})
+    datetimelastupdate: Date;
 
-  @ManyToOne(() => ControlobjectEntity, (controlobjectentity) => controlobjectentity.categoriesgroups, { nullable: false })
-  @JoinColumn([{ name: 'refcontrolobject', referencedColumnName: 'refcontrolobject' }])
-  controlobject: ControlobjectEntity;
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @OneToMany(() => CategoriesEntity, (categoriesentity) => categoriesentity.categorygroup, { nullable: false })
-  @JoinColumn([
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-    { name: 'refcategories', referencedColumnName: 'refcategories' },
-  ])
-  categories: CategoriesEntity[];
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
 
-  @OneToMany(() => CategoriesaffectationsEntity, (categoriesaffectationsentity) => categoriesaffectationsentity.categorygroup)
-  @JoinColumn([
-    { name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  categoriesgroupaffectation: CategoriesaffectationsEntity[];
+    @ManyToOne(() => ControlobjectEntity, (controlobjectentity) => controlobjectentity.categoriesgroups, {nullable: false})
+    @JoinColumn([{name: 'refcontrolobject', referencedColumnName: 'refcontrolobject'}])
+    controlobject: ControlobjectEntity;
+
+    @OneToMany(() => CategoriesEntity, (categoriesentity) => categoriesentity.categorygroup, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+        {name: 'refcategories', referencedColumnName: 'refcategories'},
+    ])
+    categories: CategoriesEntity[];
+
+    @OneToMany(() => CategoriesvendorsEntity, (categoriesvendorsentity) => categoriesvendorsentity.categorygroup)
+    @JoinColumn([
+        {name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    categoriesgroupvendor: CategoriesvendorsEntity[];
+
+    @OneToMany(() => CategoriesitemsEntity, (categoriesitemsentity) => categoriesitemsentity.categorygroup)
+    @JoinColumn([
+        {name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    categoriesgroupitem: CategoriesitemsEntity[];
 }

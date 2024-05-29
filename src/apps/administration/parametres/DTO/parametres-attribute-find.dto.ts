@@ -9,4 +9,7 @@ export class ParametresAttributeFindDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 }

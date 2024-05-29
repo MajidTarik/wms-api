@@ -11,7 +11,6 @@ import {PurchaserequisitionLinesFindDto} from "./DTO/purchaserequisition-lines-f
 import {PurchaserequisitionLinesEntity} from "../../../entities/arazan-db/procurement/purchaserequisition-lines.entity";
 import {PurchaserequisitionLinesPriceUpsertDto} from "./DTO/purchaserequisition-lines-price-upsert.dto";
 import {PurchaserequisitionLinesQtyUpsertDto} from "./DTO/purchaserequisition-lines-qty-upsert.dto";
-import {PurchaserequisitionLinesVariantUpsertDto} from "./DTO/purchaserequisition-lines-variant-upsert.dto";
 import {PurchaserequisitionLinesNewDto} from "./DTO/purchaserequisition-lines-new.dto";
 import {PurchaserequisitionLinesItemUpdateDto} from "./DTO/purchaserequisition-lines-item-update.dto";
 import {ItemsService} from "../../administration/items/items.service";
@@ -251,7 +250,6 @@ export class PurchaserequisitionService {
                             refpurchaseorder: po.refpurchaseorder,
                             refcompany: prl.refcompany,
                             refitem: prl.refitem,
-                            refvariant: prl.refvariant,
                             quantity: prl.quantity,
                             price: prl.price,
                             idheaderparametre: prl.idheaderparametre,
@@ -284,7 +282,6 @@ export class PurchaserequisitionService {
             refpurchaserequisition: purchaserequisitionlinesfindDto.refpurchaserequisition,
             refcompany: purchaserequisitionlinesfindDto.refcompany,
         });
-        // ------------------ Verifier Si l'article contient des variantes  -------------------
         //  ---------------  ---------------  ---------------  ---------------  ---------------
         if (!ptline) {
             const message = 'Ligne de DA introuvable';
@@ -303,9 +300,6 @@ export class PurchaserequisitionService {
             .leftJoinAndSelect('item.unitpurch', 'unit unitpurch')
             .leftJoinAndSelect('item.unitinvent', 'unit unitinvent')
             .leftJoinAndSelect('item.taxepurchase', 'taxe taxeitem')
-            .leftJoinAndSelect('purchaserequisitionlines.variant', 'variant')
-            .leftJoinAndSelect('variant.headervariant', 'parametresheader')
-            .leftJoinAndSelect('variant.taxepurchase', 'taxe taxevariant')
             .leftJoinAndSelect('parametresheader.parametreslines', 'parametreslines')
             .leftJoinAndSelect('purchaserequisitionlines.vendor', 'vendor')
             .leftJoinAndSelect('vendor.currency', 'currency')
@@ -378,27 +372,6 @@ export class PurchaserequisitionService {
             },
             'PURCHORDER'
         );
-        // Validation de variant
-        if(![undefined, null, ''].includes(ptline.refvariant)) {
-            await this.itemService.isVariantValid({
-                    refvariant: ptline.refvariant,
-                    refcompany: purchaserequisitionlinesFindDto.refcompany,
-                    refitem: ptline.refitem
-                },
-                'PURCHORDER'
-            );
-        } else {
-            //Validation d'occurence de variant
-            const countVariantByItem = await this.itemService.isItemHaveVariant({
-                refitem: ptline.refitem,
-                refcompany: purchaserequisitionlinesFindDto.refcompany
-            })
-            if (countVariantByItem > 0) {
-                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
-
-                throw new BadRequestException(message, { cause: message, description: message,});
-            }
-        }
 
         ptline.price = purchaserequisitionlinesFindDto.price;
         ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
@@ -455,27 +428,6 @@ export class PurchaserequisitionService {
             },
             'PURCHORDER'
         );
-        // Validation de variant
-        if(![undefined, null, ''].includes(ptline.refvariant)) {
-            await this.itemService.isVariantValid({
-                    refvariant: ptline.refvariant,
-                    refcompany: purchaserequisitionlinesFindDto.refcompany,
-                    refitem: ptline.refitem
-                },
-                'PURCHORDER'
-            );
-        } else {
-            //Validation d'occurence de variant
-            const countVariantByItem = await this.itemService.isItemHaveVariant({
-                refitem: ptline.refitem,
-                refcompany: purchaserequisitionlinesFindDto.refcompany
-            })
-            if (countVariantByItem > 0) {
-                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
-
-                throw new BadRequestException(message, { cause: message, description: message,});
-            }
-        }
 
         ptline.discountvalue = purchaserequisitionlinesFindDto.discountvalue;
         ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
@@ -532,27 +484,6 @@ export class PurchaserequisitionService {
             },
             'PURCHORDER'
         );
-        // Validation de variant
-        if(![undefined, null, ''].includes(ptline.refvariant)) {
-            await this.itemService.isVariantValid({
-                    refvariant: ptline.refvariant,
-                    refcompany: purchaserequisitionlinesFindDto.refcompany,
-                    refitem: ptline.refitem
-                },
-                'PURCHORDER'
-            );
-        } else {
-            //Validation d'occurence de variant
-            const countVariantByItem = await this.itemService.isItemHaveVariant({
-                refitem: ptline.refitem,
-                refcompany: purchaserequisitionlinesFindDto.refcompany
-            })
-            if (countVariantByItem > 0) {
-                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
-
-                throw new BadRequestException(message, { cause: message, description: message,});
-            }
-        }
 
         ptline.discountpercentage = purchaserequisitionlinesFindDto.discountpercentage;
         ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
@@ -604,92 +535,8 @@ export class PurchaserequisitionService {
             },
             'PURCHORDER'
         );
-        // Validation de variant
-        if(![undefined, null, ''].includes(ptline.refvariant)) {
-            await this.itemService.isVariantValid({
-                    refvariant: ptline.refvariant,
-                    refcompany: purchaserequisitionlinesFindDto.refcompany,
-                    refitem: ptline.refitem
-                },
-                'PURCHORDER'
-            );
-        } else {
-            //Validation d'occurence de variant
-            const countVariantByItem = await this.itemService.isItemHaveVariant({
-                refitem: ptline.refitem,
-                refcompany: purchaserequisitionlinesFindDto.refcompany
-            })
-            if (countVariantByItem > 0) {
-                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
-
-                throw new BadRequestException(message, { cause: message, description: message,});
-            }
-        }
 
         ptline.quantity = purchaserequisitionlinesFindDto.quantity;
-
-        return await this.purchreqlinesRepository
-            .save(ptline)
-            .then(async (res) => {
-                return await this.getPurchReqLines({
-                    refcompany: purchaserequisitionlinesFindDto.refcompany,
-                    refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
-                    id: res.id,
-                    refvendor: undefined,
-                });
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, { cause: err, description: err.query,});
-            });
-    }
-
-    async upsertPurchReqLineVariant(purchaserequisitionlinesFindDto: PurchaserequisitionLinesVariantUpsertDto){
-        // Validation de statut d'action
-        await this.isPurchReqStatut(
-            {
-                refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
-                refcompany: purchaserequisitionlinesFindDto.refcompany
-            },
-            Purchaserequisitionstatuts.BRLN.toString()
-        )
-
-        const ptline = await this.findPurchReqLinesIfExist({
-            id: purchaserequisitionlinesFindDto.id,
-            refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition,
-            refcompany: purchaserequisitionlinesFindDto.refcompany,
-        })
-        let message = '';
-        if([undefined, null, ''].includes(ptline.refitem)){
-            message = 'Il faut spécifier un item pour la ligne achat '+purchaserequisitionlinesFindDto.id+' !'
-
-            throw new BadRequestException(message, { cause: message, description: message,});
-        }
-        // Validation d'item
-        await this.itemService.isItemValid({
-                refcompany: purchaserequisitionlinesFindDto.refcompany,
-                refitem: ptline.refitem
-            },
-            'PURCHORDER'
-        );
-        // Validation de variant
-        if(![undefined, null, ''].includes(purchaserequisitionlinesFindDto.refvariant)) {
-            await this.itemService.isVariantValid({
-                    refvariant: ptline.refvariant,
-                    refcompany: purchaserequisitionlinesFindDto.refcompany,
-                    refitem: ptline.refitem
-                },
-                'PURCHORDER'
-            );
-        }
-
-        //Variant exist
-        const variantEntity = await this.itemService.findVariant({
-            refvariant: purchaserequisitionlinesFindDto.refvariant,
-            refcompany: purchaserequisitionlinesFindDto.refcompany,
-            refitem: ptline.refitem,
-            idheadervariant: undefined,
-        });
-        ptline.refvariant = variantEntity[0].refvariant;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -739,12 +586,11 @@ export class PurchaserequisitionService {
             itemdescription: undefined,
         });
 
-        ptline.refvariant = null;
         ptline.refitem = itemEntity[0].refitem;
-        ptline.reftaxe = itemEntity[0].reftaxepurchase;
-        const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlinesFindDto.refcompany, reftaxe: itemEntity[0].reftaxepurchase, datedebut: undefined})
-        ptline.taxevalue = taxeline[0].percentage;
-        ptline.idheaderparametre = itemEntity[0].idheaderparametre;
+        //ptline.reftaxe = itemEntity[0].reftaxepurchase;
+        //const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlinesFindDto.refcompany, reftaxe: itemEntity[0].reftaxepurchase, datedebut: undefined})
+        //ptline.taxevalue = taxeline[0].percentage;
+        //ptline.idheaderparametre = itemEntity[0].idheaderparametre;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -779,6 +625,7 @@ export class PurchaserequisitionService {
         })
 
         const idheaderparametre = await this.parametreService.checkaxesbycompany(
+            purchaserequisitionlinesaxeanalyticsDto.reforganisation,
             purchaserequisitionlinesaxeanalyticsDto.parametres,
             purchaserequisitionlinesaxeanalyticsDto.refcompany,
             'ANALYTIC'
@@ -821,7 +668,7 @@ export class PurchaserequisitionService {
 
         ptline.refvendor = purchaserequisitionlinesFindDto.refvendor;
         ptline.refcurrency = vendor[0].refcurrency;
-        ptline.reftaxegroup = vendor[0].reftaxegroup;
+        //ptline.reftaxegroup = vendor[0].reftaxegroup;
 
         return await this.purchreqlinesRepository
             .save(ptline)
@@ -903,7 +750,7 @@ export class PurchaserequisitionService {
             refpurchaserequisition: purchaserequisitionlinesFindDto.refpurchaserequisition
         })
             .then(async (linesPurchReq) => {
-                const alreadytraiteddata : {refitem: string, refvariant: string}[] = [];
+                const alreadytraiteddata : {refitem: string}[] = [];
                 let message = '';
                 for(let i = 0; i< linesPurchReq.length; i++) {
 
@@ -919,32 +766,12 @@ export class PurchaserequisitionService {
                         throw new BadRequestException(message, {cause: message, description: message,});
                     }
 
-                    if (alreadytraiteddata.find(prline => prline.refitem === linesPurchReq[i].refitem && prline.refvariant === linesPurchReq[i].refvariant) == undefined) {
-                        alreadytraiteddata.push({refitem: linesPurchReq[i].refitem, refvariant: linesPurchReq[i].refvariant})
+                    if (alreadytraiteddata.find(prline => prline.refitem === linesPurchReq[i].refitem ) == undefined) {
+                        alreadytraiteddata.push({refitem: linesPurchReq[i].refitem})
                         await this.itemService.isItemValid({
                             refcompany: linesPurchReq[i].refcompany,
                             refitem: linesPurchReq[i].refitem
                         }, 'PURCHORDER')
-                        if (![undefined, null, ''].includes(linesPurchReq[i].refvariant)) {
-                            await this.itemService.isVariantValid({
-                                    refvariant: linesPurchReq[i].refvariant,
-                                    refcompany: linesPurchReq[i].refcompany,
-                                    refitem: linesPurchReq[i].refitem
-                                },
-                                'PURCHORDER'
-                            );
-                        } else {
-                            //Validation d'occurence de variant
-                            const countVariantByItem = await this.itemService.isItemHaveVariant({
-                                refitem: linesPurchReq[i].refitem,
-                                refcompany: linesPurchReq[i].refcompany
-                            })
-                            if (countVariantByItem > 0) {
-                                message = 'Il faut spécifier une variante pour la ligne achat ' + linesPurchReq[i].id + ' !'
-
-                                throw new BadRequestException(message, {cause: message, description: message,});
-                            }
-                        }
                     }
                 }
             })
@@ -1018,27 +845,6 @@ export class PurchaserequisitionService {
             },
             'PURCHORDER'
         );
-        // Validation de variant
-        if(![undefined, null, ''].includes(ptline.refvariant)) {
-            await this.itemService.isVariantValid({
-                    refvariant: ptline.refvariant,
-                    refcompany: purchaserequisitionlineDto.refcompany,
-                    refitem: ptline.refitem
-                },
-                'PURCHORDER'
-            );
-        } else {
-            //Validation d'occurence de variant
-            const countVariantByItem = await this.itemService.isItemHaveVariant({
-                refitem: ptline.refitem,
-                refcompany: purchaserequisitionlineDto.refcompany
-            })
-            if (countVariantByItem > 0) {
-                message = 'Il faut spécifier une variante pour la ligne achat '+purchaserequisitionlineDto.id+' !'
-
-                throw new BadRequestException(message, { cause: message, description: message,});
-            }
-        }
 
         ptline.reftaxe = purchaserequisitionlineDto.reftaxe;
         const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlineDto.refcompany, reftaxe: purchaserequisitionlineDto.reftaxe, datedebut: undefined})

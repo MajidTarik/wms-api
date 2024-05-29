@@ -3,10 +3,14 @@ import {Typelocationposition} from "../../../../helpers/typelocationposition";
 import {Typeseprator} from "../../../../helpers/typeseprator";
 export class AisleSaveDto {
   @IsString()
+  @IsOptional()
   readonly refaisle: string;
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 
   @IsString()
   readonly refarea: string;
@@ -20,20 +24,11 @@ export class AisleSaveDto {
   @IsNumber()
   readonly xshelf: number;
 
-  @IsString()
-  readonly xtype: Typelocationposition;
-
   @IsNumber()
   readonly yfloor: number;
 
-  @IsString()
-  readonly ytype: Typelocationposition;
-
   @IsNumber()
   readonly zsection: number;
-
-  @IsString()
-  readonly ztype: Typelocationposition;
 
   @IsString()
   readonly prefix: string;

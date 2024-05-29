@@ -17,7 +17,11 @@ export class SitegeographicCreateDto {
   @IsString()
   readonly refcompany: string;
 
+  @IsString()
+  readonly reforganisation: string;
+
   @IsObject()
+  @IsOptional()
   readonly parametres: object;
 
   @IsOptional()
@@ -25,5 +29,6 @@ export class SitegeographicCreateDto {
   idheaderparametre: number;
 
   @IsString()
-  readonly reftypeparametre: string;
+  @IsOptional()
+  readonly description: string;
 }

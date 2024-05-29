@@ -1,42 +1,53 @@
 import {
-  Column,
-  Entity,
-  JoinColumn, ManyToOne,
-  OneToMany,
-  PrimaryColumn
+    Entity,
+    JoinColumn, ManyToOne,
+    PrimaryColumn
 } from 'typeorm';
-import { VendorEntity } from './vendor.entity';
-import { CompanyEntity } from "../cartography/company.entity";
-import {CurrencyEntity} from "./currency.entity";
+import {CompanyEntity} from "../cartography/company.entity";
 import {TaxeEntity} from "./taxe.entity";
 import {TaxeGroupEntity} from "./taxe-group.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('taxebygroup')
 export class TaxeByGroupEntity {
-  @PrimaryColumn()
-  reftaxegroup: string;
+    @PrimaryColumn()
+    reftaxegroup: string;
 
-  @PrimaryColumn()
-  reftaxe: string;
+    @PrimaryColumn()
+    reftaxe: string;
 
-  @PrimaryColumn()
-  refcompany: string;
+    @PrimaryColumn()
+    refcompany: string;
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, { nullable: false })
-  @JoinColumn([{ name: 'refcompany', referencedColumnName: 'refcompany' }])
-  company: CompanyEntity;
+    @PrimaryColumn()
+    reforganisation: string;
 
-  @ManyToOne(() => TaxeEntity, (taxeentity) => taxeentity.reftaxe, { nullable: false })
-  @JoinColumn([
-      { name: 'reftaxe', referencedColumnName: 'reftaxe' },
-      { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  taxe: TaxeEntity;
+    @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.refcompany, {nullable: false})
+    @JoinColumn([
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    company: CompanyEntity;
 
-  @ManyToOne(() => TaxeGroupEntity, (taxegroupentity) => taxegroupentity.reftaxegroup, { nullable: false })
-  @JoinColumn([
-    { name: 'reftaxegroup', referencedColumnName: 'reftaxegroup' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-  ])
-  taxegroup: TaxeGroupEntity;
+    @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+    @JoinColumn([
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    organisation: OrganisationEntity;
+
+    @ManyToOne(() => TaxeEntity, (taxeentity) => taxeentity.reftaxe, {nullable: false})
+    @JoinColumn([
+        {name: 'reftaxe', referencedColumnName: 'reftaxe'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    taxe: TaxeEntity;
+
+    @ManyToOne(() => TaxeGroupEntity, (taxegroupentity) => taxegroupentity.reftaxegroup, {nullable: false})
+    @JoinColumn([
+        {name: 'reftaxegroup', referencedColumnName: 'reftaxegroup'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    taxegroup: TaxeGroupEntity;
 }

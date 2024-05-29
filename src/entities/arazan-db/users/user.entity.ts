@@ -11,16 +11,20 @@ import { UserCompaniesEntity } from "./user-companies.entity";
 import { ParametresAttributEntity } from "../parametres/parametres-attribut.entity";
 import { CompanyEntity } from "../cartography/company.entity";
 import { ParametresTypesEntity } from "../parametres/parametres-types.entity";
+import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('user')
-@Unique(['login', 'refcompany'])
-@Unique(['email', 'refcompany'])
+@Unique(['login', 'reforganisation'])
+@Unique(['email', 'reforganisation'])
 export class UserEntity {
-  @Column()
-  login: string;
+  @PrimaryColumn()
+  reforganisation: string;
 
   @PrimaryColumn()
-  refcompany: string;
+  matricule: string;
+
+  @Column()
+  login: string;
   
   @Column()
   pwd: string;
@@ -44,18 +48,17 @@ export class UserEntity {
   
   @Column()
   email: string;
-  
-  @PrimaryColumn()
-  matricule: string;
 
   @OneToMany(() => UserCompaniesEntity, (usercompaniesentity) => usercompaniesentity.user)
   @JoinColumn([
     { name: 'matricule', referencedColumnName: 'matricule' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
+    { name: 'reforganisation', referencedColumnName: 'reforganisation' },
   ])
   companiesusers: UserCompaniesEntity[];
 
-  @ManyToOne(() => CompanyEntity, (companyentity) => companyentity.users, {nullable: false})
-  @JoinColumn({ name: 'refcompany' })
-  company: CompanyEntity;
+  @ManyToOne(() => OrganisationEntity, (organisationentity) => organisationentity.reforganisation, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+  ])
+  organisation: OrganisationEntity;
 }

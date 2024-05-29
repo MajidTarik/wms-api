@@ -9,6 +9,12 @@ export class WarehouseFindDto {
   readonly warehouse: string;
 
   @IsString()
-  @IsOptional()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
+  @IsOptional()
+  readonly refsitegeographic: string;
 }

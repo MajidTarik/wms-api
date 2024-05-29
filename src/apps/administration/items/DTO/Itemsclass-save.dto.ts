@@ -5,10 +5,6 @@ export class ItemsclassSaveDto {
 
   @IsString() readonly refcompany: string;
 
-  @IsString()
-  @IsOptional()
-  readonly refvariant: string;
-
   @IsString() readonly refwarehouse: string;
 
   @IsString() readonly class: Abcclass;
