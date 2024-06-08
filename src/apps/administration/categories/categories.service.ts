@@ -12,7 +12,6 @@ import { CategoriesSaveDto } from "./DTO/categories-save.dto";
 import { CategoriesAffectationDto } from "./DTO/categories-Affectation.dto";
 import {MasterdataService} from "../masterdata/masterdata.service";
 import {CategoriesitemsEntity} from "../../../entities/arazan-db/categories/categoriesitems.entity";
-import {CategoriesvendorsEntity} from "../../../entities/arazan-db/categories/categoriesvendors.entity";
 
 @Injectable({})
 export class CategoriesService {
@@ -25,9 +24,6 @@ export class CategoriesService {
 
     @InjectRepository(CategoriesitemsEntity)
     private readonly categoriesitemsRepository: Repository<CategoriesitemsEntity>,
-
-    @InjectRepository(CategoriesvendorsEntity)
-    private readonly categoriesvendorRepository: Repository<CategoriesvendorsEntity>,
 
     private parametreService: ParametresService,
 
@@ -54,6 +50,7 @@ export class CategoriesService {
         where: [
           {
             refcompany: categoryGroupDto.refcompany,
+            reforganisation: categoryGroupDto.reforganisation,
             refcategoriesgroup: categoryGroupDto?.refcategoriesgroup || undefined,
             categoriesgroup: categoryGroupDto?.categoriesgroup || undefined,
           },
@@ -77,7 +74,8 @@ export class CategoriesService {
       where: {
         refparentcategories: IsNull(),
         refcompany: categoriesFindDto.refcompany,
-        refcategoriesgroup: categoriesFindDto.refcategoriesgroup
+        reforganisation: categoriesFindDto.reforganisation,
+        refcategoriesgroup: categoriesFindDto.refcategoriesgroup,
       }, // Fetch only the top-level categories
     });
     await this.buildCategoryTree(categories);
@@ -91,6 +89,7 @@ export class CategoriesService {
         where: {
           refparentcategories: category.refcategories,
           refparentcompany: category.refcompany,
+          refparentorganisation: category.reforganisation,
           refparentcategoriesgroup: category.refcategoriesgroup,
         },
       });
@@ -107,6 +106,7 @@ export class CategoriesService {
   async createCategory(categoryDto: CategoriesSaveDto) {
     let category = await this.categoriesRepository.findOneBy({
       refcompany : categoryDto.refcompany,
+      reforganisation : categoryDto.reforganisation,
       refcategoriesgroup: categoryDto.refcategoriesgroup,
       refcategories: categoryDto.refcategories,
     });
@@ -119,6 +119,7 @@ export class CategoriesService {
     if (Number(category.level) === 1) {
       category.refparentcategories = null;
       category.refparentcompany = null;
+      category.refparentorganisation = null;
       category.refparentcategoriesgroup = null;
     }
 
@@ -139,6 +140,7 @@ export class CategoriesService {
           refcompany: categoryDto.refcompany,
           refcategoriesgroup: categoryDto.refcategoriesgroup,
           refcategories: categoryDto?.refcategories || undefined,
+          reforganisation: categoryDto.reforganisation,
         }]
       })
       .then(async (res) => {
@@ -165,7 +167,6 @@ export class CategoriesService {
     }
 
     if (!controlobject[0].okforgroupcategories) {
-      console.log('object non autoriser pour le contrôle d\'address')
       throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
     } else {
       if (controlobject[0].prefix === 'VD') {
@@ -173,12 +174,13 @@ export class CategoriesService {
             .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.prefix = :prefix', {prefix: categoriesAffectation.prefix})
             .leftJoinAndSelect('categoriesgroup.categoriesgroupvendor', 'categoriesgroupaffectation', 'categoriesgroupaffectation.refvendor = :refobject', {refobject: categoriesAffectation.refObject})
             .where('categoriesgroup.refcompany = :refcompany', {refcompany: categoriesAffectation.refcompany})
-            .andWhere('categoriesgroup.refcompany = :refcompany', {refcompany: categoriesAffectation.refcompany})
+            .andWhere('categoriesgroup.reforganisation = :reforganisation', {reforganisation: categoriesAffectation.reforganisation})
       } else if (controlobject[0].prefix === 'ITM') {
         await buildedQuery
             .innerJoinAndSelect('categoriesgroup.controlobject', 'controlobject', 'controlobject.prefix = :prefix', {prefix: categoriesAffectation.prefix})
             .leftJoinAndSelect('categoriesgroup.categoriesgroupitem', 'categoriesgroupaffectation', 'categoriesgroupaffectation.refitem = :refobject', {refobject: categoriesAffectation.refObject})
             .where('categoriesgroup.refcompany = :refcompany', {refcompany: categoriesAffectation.refcompany})
+            .andWhere('categoriesgroup.reforganisation = :reforganisation', {reforganisation: categoriesAffectation.reforganisation})
       } else {
         throw new BadRequestException('l\'object contrôler est introuvable', {});
       }
@@ -187,7 +189,12 @@ export class CategoriesService {
           .then(async (res) => {
             let i = 0;
             for await (const grcategories of res) {
-              const hierarchyCategories = await this.findHierarchyByGroupCategories({refcategoriesgroup: grcategories['refcategoriesgroup'], refcompany: categoriesAffectation.refcompany, refcategories: undefined})
+              const hierarchyCategories = await this.findHierarchyByGroupCategories({
+                refcategoriesgroup: grcategories['refcategoriesgroup'],
+                refcompany: categoriesAffectation.refcompany,
+                refcategories: undefined,
+                reforganisation: categoriesAffectation.reforganisation,
+              });
               res[i]['categories'] = hierarchyCategories;
               i++;
             }
@@ -199,9 +206,9 @@ export class CategoriesService {
     }
   }
 
-  async affectationEntityCategories(categories, refcompany, refobject, prefix) {
+  async affectationEntityCategories(reforganisation, categories, refcompany, refobject, prefix) {
     const controlobject = await this.masterdataService.findControlobject({
-      refcontrolobject : undefined,
+      refcontrolobject: undefined,
       okforaddress: undefined,
       okforgroupcategories: undefined,
       okforworkflows: undefined,
@@ -213,42 +220,11 @@ export class CategoriesService {
     }
 
     if (!controlobject[0].okforgroupcategories) {
-      console.log('object non autoriser pour le contrôle d\'address')
       throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
     } else {
-      if (controlobject[0].prefix === 'VD') {
-        return await this.categoriesvendorRepository.findBy({
-          refcompany: refcompany,
-          refvendor: refobject,
-        })
-            .then(async (res) => {
-              return await this.categoriesvendorRepository.remove(res)
-                  .then(async (res) => {
-                    let i = 0;
-                    for await (const catego of categories) {
-                      categories[i]['refcompany'] = refcompany;
-                      categories[i]['refvendor'] = refobject;
-                      i++;
-                    }
-                    return await this.categoriesvendorRepository
-                        .save(categories)
-                        .then(async (res) => {
-                          return res;
-                        })
-                        .catch((err) => {
-                          throw new BadRequestException(err.message, { cause: err, description: err.query,});
-                        });
-                  })
-                  .catch((err) => {
-                    throw new BadRequestException(err.message, {cause: err, description: err.query,});
-                  });
-            })
-            .catch((err) => {
-              throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-      } else if (controlobject[0].prefix === 'ITM') {
-        console.log('=====================================-=-=-=-=-=-=------------------->>>>>>!!!')
+      if (controlobject[0].prefix === 'ITM') {
         return await this.categoriesitemsRepository.findBy({
+          reforganisation: reforganisation,
           refcompany: refcompany,
           refitem: refobject,
         })
@@ -258,6 +234,7 @@ export class CategoriesService {
                     let i = 0;
                     for await (const catego of categories) {
                       categories[i]['refcompany'] = refcompany;
+                      categories[i]['reforganisation'] = reforganisation;
                       categories[i]['refitem'] = refobject;
                       i++;
                     }
@@ -277,8 +254,6 @@ export class CategoriesService {
             .catch((err) => {
               throw new BadRequestException(err.message, {cause: err, description: err.query,});
             });
-
-        console.log('<<<<<<<<<<<<<<<<=====================================-=-=-=-=-=-=------------------->>>>>>!!!')
       } else {
         throw new BadRequestException('l\'object contrôler est introuvable', {});
       }

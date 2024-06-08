@@ -12,6 +12,9 @@ export class ItemsFindDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   @IsOptional()
   readonly searchname: string;
 

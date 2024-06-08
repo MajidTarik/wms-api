@@ -1,4 +1,4 @@
-import { IsArray, IsString, ValidateNested } from 'class-validator';
+import {IsArray, IsOptional, IsString, ValidateNested} from 'class-validator';
 import {Type} from "class-transformer";
 
 class AffectedTaxe {
@@ -11,12 +11,16 @@ export class TaxeGroupSaveDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   readonly reftaxegroup: string;
 
   @IsString()
   readonly taxegroup: string;
 
   @IsArray()
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => AffectedTaxe)
   readonly affectedtaxes: AffectedTaxe[];

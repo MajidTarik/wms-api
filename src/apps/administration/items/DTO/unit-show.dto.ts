@@ -5,4 +5,7 @@ export class UnitShowDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 }

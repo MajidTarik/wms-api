@@ -18,6 +18,8 @@ import * as moment from 'moment';
 import {TaxeLineDeleteDto} from "./DTO/taxe-line-delete.dto";
 import {TaxeGroupSaveDto} from "./DTO/taxe-group-save.dto";
 import {TaxeGroupFindDto} from "./DTO/taxe-group-find.dto";
+import {VendorReleaseFindDto} from "./DTO/vendor-release-find.dto";
+import {VendorReleaseSaveDto} from "./DTO/vendor-release-save.dto";
 
 @Controller('masterdata')
 export class MasterdataController {
@@ -65,6 +67,42 @@ export class MasterdataController {
     async saveVendor(@Body() vendorDto: VendorSaveDto) {
         try {
             return await this.masterdataService.saveVendor(vendorDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
+
+    @Post('lancervendor')
+    async lancerVendor(@Body() vendorDto: VendorReleaseSaveDto) {
+        try {
+            return await this.masterdataService.lancerVendor(vendorDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
+
+    @Post('getreleasedvendorbycompany')
+    async getReleasedVendorByCompany(@Body() vendorReleaseFindDto: VendorReleaseFindDto) {
+        try {
+            return await this.masterdataService.getReleasedVendorByCompany(vendorReleaseFindDto);
         } catch (e) {
             throw new HttpException(
                 {

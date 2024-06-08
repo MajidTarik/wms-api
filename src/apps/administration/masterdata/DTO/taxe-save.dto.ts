@@ -4,6 +4,9 @@ export class TaxeSaveDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   readonly reftaxe: string;
 
   @IsString()

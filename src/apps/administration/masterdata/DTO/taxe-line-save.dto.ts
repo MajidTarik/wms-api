@@ -5,6 +5,9 @@ export class TaxeLineSaveDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   readonly reftaxe: string;
 
   @IsString()

@@ -38,6 +38,7 @@ import {AddressAttachSaveDto} from "./DTO/address-attach-save.dto";
 import {AddressSitegeographicsEntity} from "../../../entities/arazan-db/cartography/address-sitegeographics.entity";
 import {AddressWarehousesEntity} from "../../../entities/arazan-db/cartography/address-warehouses.entity";
 import {hash} from "typeorm/util/StringUtils";
+import {AddressVendorsEntity} from "../../../entities/arazan-db/cartography/address-vendors.entity";
 
 @Injectable()
 export class WhCartographyService {
@@ -71,6 +72,9 @@ export class WhCartographyService {
 
         @InjectRepository(AddressWarehousesEntity)
         private readonly addressWarehouseRepository: Repository<AddressWarehousesEntity>,
+
+        @InjectRepository(AddressVendorsEntity)
+        private readonly addressVendorRepository: Repository<AddressVendorsEntity>,
 
         private parametreService: ParametresService,
 
@@ -435,7 +439,6 @@ export class WhCartographyService {
         // Verify that X, Y and Z are > 0
         if ((aisleDto.xshelf > 0) && (aisleDto.yfloor > 0) && (aisleDto.zsection > 0)) {
             // Check if the aisle is all ready exist in data base.
-            console.log(aisleDto);
             const existingAisle = await this.aisleRepository.findOneBy({
                 refaisle: aisleDto.refaisle,
                 refcompany: aisleDto.refcompany,
@@ -718,7 +721,6 @@ export class WhCartographyService {
         }
 
         if (!controlobject[0].okforaddress) {
-            console.log('object non autoriser pour le contrôle d\'address')
             throw new BadRequestException('object non autoriser pour le contrôle d\'address', {});
         } else {
             if (controlobject[0].prefix === 'ST') {
@@ -737,6 +739,14 @@ export class WhCartographyService {
                     .innerJoinAndSelect('address.country', 'country')
                     .innerJoinAndSelect('addresswarehouses.addresstype', 'addresstype')
                     .where('addresswarehouses.refwarehouse = :refwarehouse', { refwarehouse: addressaffectedfindDto.refObject })
+            } else if (controlobject[0].prefix === 'VD') {
+                buildedQuery = await this.addressVendorRepository
+                    .createQueryBuilder('addressvendors')
+                    .innerJoinAndSelect('addressvendors.address', 'address')
+                    .innerJoinAndSelect('address.city', 'city')
+                    .innerJoinAndSelect('address.country', 'country')
+                    .innerJoinAndSelect('addressvendors.addresstype', 'addresstype')
+                    .where('addressvendors.refvendor = :refvendor', { refvendor: addressaffectedfindDto.refObject })
             } else {
                 throw new BadRequestException('l\'object contrôler est introuvable', {});
             }
@@ -799,6 +809,22 @@ export class WhCartographyService {
                     .catch((err) => {
                         throw new BadRequestException(err.message, {cause: err, description: err.query,});
                     });
+            } else if (controlobject[0].prefix === 'VD') {
+                const addressvendorsreleased = await this.addressVendorRepository.create({
+                    refcompany: addressattachsaveDto.refcompany,
+                    reforganisation: addressattachsaveDto.reforganisation,
+                    refaddresstype: addressattachsaveDto.refaddresstype,
+                    refaddress: addressattachsaveDto.refaddress,
+                    refvendor: addressattachsaveDto.refObject,
+                });
+                return await this.addressVendorRepository
+                    .save(addressvendorsreleased)
+                    .then(async (res) => {
+                        return res;
+                    })
+                    .catch((err) => {
+                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                    });
             } else {
                 throw new BadRequestException('l\'object contrôler est introuvable', {});
             }
@@ -851,6 +877,26 @@ export class WhCartographyService {
                 })
                     .then(async (res) => {
                         return await this.addressWarehouseRepository.remove(res)
+                            .then(async (res) => {
+                                return res;
+                            })
+                            .catch((err) => {
+                                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                            });
+                    })
+                    .catch((err) => {
+                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                    });
+            } else if (controlobject[0].prefix === 'VD') {
+                return await this.addressVendorRepository.findBy({
+                    refcompany: addressattachsaveDto.refcompany,
+                    reforganisation: addressattachsaveDto.reforganisation,
+                    refaddresstype: addressattachsaveDto.refaddresstype,
+                    refaddress: addressattachsaveDto.refaddress,
+                    refvendor: addressattachsaveDto.refObject
+                })
+                    .then(async (res) => {
+                        return await this.addressVendorRepository.remove(res)
                             .then(async (res) => {
                                 return res;
                             })

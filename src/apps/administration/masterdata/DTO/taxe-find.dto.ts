@@ -4,6 +4,9 @@ export class TaxeFindDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   @IsOptional()
   readonly reftaxe: string;
 }

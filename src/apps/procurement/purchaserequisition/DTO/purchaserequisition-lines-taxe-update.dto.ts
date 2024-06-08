@@ -5,6 +5,9 @@ export class PurchaserequisitionLinesTaxeUpdateDto {
     readonly refcompany: string;
 
     @IsString()
+    readonly reforganisation: string;
+
+    @IsString()
     readonly refpurchaserequisition: string;
 
     @IsString()

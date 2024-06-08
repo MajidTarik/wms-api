@@ -4,6 +4,8 @@ export class CategoriesGroupSaveDto {
 
   @IsString() readonly refcompany: string;
 
+  @IsString() readonly reforganisation: string;
+
   @IsString() readonly categoriesgroup: string;
 
   @IsBoolean() readonly actif: boolean;

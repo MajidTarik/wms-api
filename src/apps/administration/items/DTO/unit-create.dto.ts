@@ -15,4 +15,7 @@ export class UnitCreateDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 }

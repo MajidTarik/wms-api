@@ -18,6 +18,7 @@ import {DettachDefaultCompanyDto} from "./DTO/dettach-default-company.dto";
 import {UserCompanyWarehouseFindDto} from "./DTO/user-company-warehouse-find.dto";
 import {UserCompaniesWarehousesEntity} from "../../../entities/arazan-db/users/user-companies-warehouses.entity";
 import {UserCompanyWarehouseSaveDto} from "./DTO/user-company-warehouse-save.dto";
+import {FindUserByMatriculeDto} from "./DTO/find-user-by-matricule.dto";
 
 @Injectable()
 export class UsersService {
@@ -103,10 +104,34 @@ export class UsersService {
                 reforganisation: userFindDto.reforganisation,
             })
             .then(async (users) => {
-                return users;
+                const usersWithoutPwd = users.map(({ pwd, ...safeuser }) => safeuser);
+                return usersWithoutPwd;
             })
             .catch((err) => {
                 throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
+    async resetUserPwd(userToReset: FindUserByMatriculeDto) {
+        return await this.userRepository
+            .createQueryBuilder()
+            .update(UserEntity)
+            .set({
+                pwd: hash('@@'+userToReset.matricule+'@@'),
+            })
+            .where("reforganisation = :reforganisation and matricule = :matricule ", {
+                reforganisation: userToReset.reforganisation,
+                matricule: userToReset.matricule
+            })
+            .execute()
+            .then(async (res) => {
+                return await this.getUsersList({
+                    matricule: userToReset.matricule,
+                    reforganisation: userToReset.reforganisation,
+                });
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
             });
     }
 

@@ -9,12 +9,18 @@ class Taxes {
     readonly refcompany: string;
 
     @IsString()
+    readonly reforganisation: string;
+
+    @IsString()
     readonly reftaxegroup: string
 }
 
 export class TaxeByGroupSaveDto {
     @IsString()
     readonly refcompany: string;
+
+    @IsString()
+    readonly reforganisation: string;
 
     @IsString()
     readonly reftaxegroup: string;

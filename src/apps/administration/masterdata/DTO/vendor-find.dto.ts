@@ -6,4 +6,7 @@ export class VendorFindDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string
 }

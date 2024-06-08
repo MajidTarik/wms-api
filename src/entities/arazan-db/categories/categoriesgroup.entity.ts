@@ -11,7 +11,6 @@ import {
 import {CompanyEntity} from '../cartography/company.entity';
 import {CategoriesEntity} from "./categories.entity";
 import {ControlobjectEntity} from "../masterdata/controlobject.entity";
-import {CategoriesvendorsEntity} from "./categoriesvendors.entity";
 import {CategoriesitemsEntity} from "./categoriesitems.entity";
 import {OrganisationEntity} from "../cartography/organisation.entity";
 
@@ -65,14 +64,6 @@ export class CategoriesgroupEntity {
         {name: 'refcategories', referencedColumnName: 'refcategories'},
     ])
     categories: CategoriesEntity[];
-
-    @OneToMany(() => CategoriesvendorsEntity, (categoriesvendorsentity) => categoriesvendorsentity.categorygroup)
-    @JoinColumn([
-        {name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
-        {name: 'refcompany', referencedColumnName: 'refcompany'},
-        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
-    ])
-    categoriesgroupvendor: CategoriesvendorsEntity[];
 
     @OneToMany(() => CategoriesitemsEntity, (categoriesitemsentity) => categoriesitemsentity.categorygroup)
     @JoinColumn([

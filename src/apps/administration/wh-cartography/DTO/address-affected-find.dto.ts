@@ -4,6 +4,9 @@ export class AddressAffectedFindDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   prefix: string;
 
   @IsString()

@@ -7,6 +7,9 @@ export class UomInterneConversionCreateDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   readonly refunitfrom: string;
 
   @IsString()

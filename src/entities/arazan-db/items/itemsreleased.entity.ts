@@ -17,6 +17,9 @@ import {PurchaserequisitionLinesEntity} from '../procurement/purchaserequisition
 import {TaxeEntity} from '../masterdata/taxe.entity';
 import {CategoriesitemsEntity} from "../categories/categoriesitems.entity";
 import {OrganisationEntity} from "../cartography/organisation.entity";
+import {ItemsgroupEntity} from "./itemsgroup.entity";
+import {ItemsEntity} from "./items.entity";
+import {VendorgroupEntity} from "../masterdata/vendorgroup.entity";
 
 @Entity('itemsreleased')
 export class ItemsreleasedEntity {
@@ -31,6 +34,18 @@ export class ItemsreleasedEntity {
 
     @Column({default: false, nullable: true})
     stopedpurch: boolean;
+
+    @Column({type: "decimal", precision: 10, scale: 2, default: 0, nullable: true})
+    purchaseprice: number;
+
+    @Column({type: "decimal", precision: 10, scale: 2, default: 0, nullable: true})
+    salesprice: number;
+
+    @Column({type: "decimal", precision: 10, scale: 0, default: 0, nullable: true})
+    purchasepriceunit: number;
+
+    @Column({type: "decimal", precision: 10, scale: 0, default: 0, nullable: true})
+    salespriceunit: number;
 
     @Column({default: false, nullable: true})
     stopedsales: boolean;
@@ -67,6 +82,9 @@ export class ItemsreleasedEntity {
 
     @Column({nullable: true})
     refpricemodel: string;
+
+    @Column({nullable: true})
+    refitemgroup: string;
 
     @Column({nullable: true})
     refitemtracking: string;
@@ -139,6 +157,14 @@ export class ItemsreleasedEntity {
     ])
     pricemodel: PricemodelEntity;
 
+    @ManyToOne(() => ItemsgroupEntity, (itemgroupentity) => itemgroupentity.itemsreleased, {nullable: true})
+    @JoinColumn([
+        {name: 'refitemgroup', referencedColumnName: 'refitemgroup'},
+        {name: 'refcompany', referencedColumnName: 'refcompany'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    itemgroup: ItemsgroupEntity;
+
     @ManyToOne(() => ItemtrackingEntity, (itemtrackingentity) => itemtrackingentity.refitemtracking, {nullable: true})
     @JoinColumn([
         {name: 'refitemtracking', referencedColumnName: 'refitemtracking'},
@@ -180,4 +206,11 @@ export class ItemsreleasedEntity {
         {name: 'reforganisation', referencedColumnName: 'reforganisation'},
     ])
     categoriesaffectation: CategoriesitemsEntity[];
+
+    @ManyToOne(() => ItemsEntity, (itemsEntity) => itemsEntity.refitem, {nullable: false})
+    @JoinColumn([
+        {name: 'refitem', referencedColumnName: 'refitem'},
+        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    ])
+    item: ItemsEntity;
 }

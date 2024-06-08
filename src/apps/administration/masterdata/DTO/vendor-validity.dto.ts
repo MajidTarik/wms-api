@@ -5,4 +5,7 @@ export class VendorValidityDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 }

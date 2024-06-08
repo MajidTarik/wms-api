@@ -14,6 +14,7 @@ import {ItemclassEntity} from "../../../entities/arazan-db/items/itemclass.entit
 import {MasterdataModule} from "../masterdata/masterdata.module";
 import {HelpersProvider} from "../../../helpers/providers/helpers.provider";
 import {ItemsreleasedEntity} from "../../../entities/arazan-db/items/itemsreleased.entity";
+import {ItemsgroupEntity} from "../../../entities/arazan-db/items/itemsgroup.entity";
 
 @Module({
     controllers: [
@@ -29,6 +30,7 @@ import {ItemsreleasedEntity} from "../../../entities/arazan-db/items/itemsreleas
             ItemtrackingEntity,
             ItemclassEntity,
             ItemsreleasedEntity,
+            ItemsgroupEntity,
         ]),
         ParametresModule,
         CategoriesModule,

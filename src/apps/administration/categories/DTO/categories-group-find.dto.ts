@@ -4,6 +4,8 @@ export class CategoriesGroupFindDto {
 
   @IsString() readonly refcompany: string;
 
+  @IsString() readonly reforganisation: string;
+
   @IsString() @IsOptional() readonly categoriesgroup: string;
 
   @IsObject() @IsOptional() readonly actif: boolean;

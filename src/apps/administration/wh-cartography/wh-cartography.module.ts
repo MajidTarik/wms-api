@@ -9,7 +9,6 @@ import {WarehouseEntity} from "../../../entities/arazan-db/cartography/warehouse
 import {AreaEntity} from "../../../entities/arazan-db/cartography/area.entity";
 import {ItemsModule} from "../items/items.module";
 import {UserEntity} from "../../../entities/arazan-db/users/user.entity";
-import {UserCompaniesEntity} from "../../../entities/arazan-db/users/user-companies.entity";
 import {CategoriesModule} from "../categories/categories.module";
 import {FurnituretypeEntity} from "../../../entities/arazan-db/cartography/furnituretype.entity";
 import {AisleEntity} from "../../../entities/arazan-db/cartography/aisle.entity";
@@ -23,6 +22,7 @@ import {MasterdataModule} from "../masterdata/masterdata.module";
 import {AddressWarehousesEntity} from "../../../entities/arazan-db/cartography/address-warehouses.entity";
 import {AddressSitegeographicsEntity} from "../../../entities/arazan-db/cartography/address-sitegeographics.entity";
 import {OrganisationEntity} from "../../../entities/arazan-db/cartography/organisation.entity";
+import {AddressVendorsEntity} from "../../../entities/arazan-db/cartography/address-vendors.entity";
 
 @Module({
     controllers: [WhCartographyController],
@@ -43,6 +43,7 @@ import {OrganisationEntity} from "../../../entities/arazan-db/cartography/organi
             CountryEntity,
             AddressWarehousesEntity,
             AddressSitegeographicsEntity,
+            AddressVendorsEntity,
             OrganisationEntity
         ]),
         ParametresModule,

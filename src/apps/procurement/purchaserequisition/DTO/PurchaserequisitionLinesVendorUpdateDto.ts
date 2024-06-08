@@ -4,6 +4,9 @@ export class PurchaserequisitionLinesVendorUpdateDto {
     readonly refcompany: string;
 
     @IsString()
+    readonly reforganisation: string;
+
+    @IsString()
     readonly refpurchaserequisition: string;
 
     @IsNumber()

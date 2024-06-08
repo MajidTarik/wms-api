@@ -4,10 +4,17 @@ export class UomConversionFindDto {
   readonly refcompany: string;
 
   @IsString()
+  readonly reforganisation: string;
+
+  @IsString()
   @IsOptional()
   readonly refitem: string;
 
   @IsString()
   @IsOptional()
-  readonly id: string;
+  readonly refunitfrom: string;
+
+  @IsString()
+  @IsOptional()
+  readonly refunitto: string;
 }

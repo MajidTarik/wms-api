@@ -14,6 +14,11 @@ import { UomInterneConversionFindDto } from "./DTO/uom-interne-conversion-find.d
 import { ItemsSaveDto } from "./DTO/Items-save.dto";
 import {ItemsclassSaveDto} from "./DTO/Itemsclass-save.dto";
 import {ItemsclassFindDto} from "./DTO/Itemsclass-find.dto";
+import {VendorReleaseSaveDto} from "../masterdata/DTO/vendor-release-save.dto";
+import {VendorReleaseFindDto} from "../masterdata/DTO/vendor-release-find.dto";
+import {ItemReleaseSaveDto} from "./DTO/item-release-save.dto";
+import {ItemReleaseFindDto} from "./DTO/item-release-find.dto";
+import {ItemsGroupFindDto} from "./DTO/Items-group-find.dto";
 
 @Controller('items')
 export class ItemsController {
@@ -57,7 +62,7 @@ export class ItemsController {
     }
   }
 
-  @Get('showunit/:refcompany/:refunit')
+  @Get('showunit/:refcompany/:refunit/:reforganisation')
   async showUnit(@Param() unitDto: UnitShowDto) {
     try {
       return await this.itemService.showUnit(unitDto);
@@ -130,7 +135,7 @@ export class ItemsController {
     }
   }
 
-  @Get('showpricemodel/:refcompany/:refpricemodel')
+  @Get('showpricemodel/:refcompany/:refpricemodel/:reforganisation')
   async showPriceModel(@Param() pricemodelDto: PriceModelShowDto) {
     try {
       return await this.itemService.showPriceModel(pricemodelDto);
@@ -153,24 +158,6 @@ export class ItemsController {
   async lookForItem(@Body() itemsDto: ItemsFindDto) {
     try {
       return await this.itemService.lookForItem(itemsDto);
-    } catch (e) {
-      throw new HttpException(
-        {
-          status: e.status,
-          error: e.response.error,
-        },
-        e.status,
-        {
-          cause: e,
-        },
-      );
-    }
-  }
-
-  @Post('finditem')
-  async findItem(@Body() itemsDto: ItemsFindDto) {
-    try {
-      return await this.itemService.findItem(itemsDto);
     } catch (e) {
       throw new HttpException(
         {
@@ -323,6 +310,60 @@ export class ItemsController {
           {
             status: e.status,
             error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('getitemgroup')
+  async getItemGroup(@Body() itemgroup: ItemsGroupFindDto) {
+    try {
+      return await this.itemService.getItemGroup(itemgroup);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response['error'],
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('lanceritem')
+  async lancerItem(@Body() itemDto: ItemReleaseSaveDto) {
+    try {
+      return await this.itemService.lancerItem(itemDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
+          },
+          e.status,
+          {
+            cause: e,
+          },
+      );
+    }
+  }
+
+  @Post('getreleaseditembycompany')
+  async getReleasedItemByCompany(@Body() itemReleaseFindDto: ItemReleaseFindDto) {
+    try {
+      return await this.itemService.getReleasedItemByCompany(itemReleaseFindDto);
+    } catch (e) {
+      throw new HttpException(
+          {
+            status: e.status,
+            error: e.response.error,
           },
           e.status,
           {

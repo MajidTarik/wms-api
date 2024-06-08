@@ -18,6 +18,7 @@ import {TaxeByGroupEntity} from "../../../entities/arazan-db/masterdata/taxe-by-
 import {TaxeLineEntity} from "../../../entities/arazan-db/masterdata/taxe-line.entity";
 import {DatesProvider} from "../../../helpers/providers/dates.provider";
 import {VendorreleasedEntity} from "../../../entities/arazan-db/masterdata/vendorreleased.entity";
+import {HelpersProvider} from "../../../helpers/providers/helpers.provider";
 
 @Module({
   controllers: [
@@ -45,6 +46,7 @@ import {VendorreleasedEntity} from "../../../entities/arazan-db/masterdata/vendo
   providers: [
       MasterdataService,
       DatesProvider,
+      HelpersProvider
   ],
   exports: [MasterdataService],
 })

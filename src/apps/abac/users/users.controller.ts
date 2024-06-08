@@ -7,6 +7,7 @@ import {UserCompanySaveDto} from "./DTO/user-company-save.dto";
 import {UserCompanyFindDto} from "./DTO/user-company-find.dto";
 import {UserCompanyWarehouseFindDto} from "./DTO/user-company-warehouse-find.dto";
 import {UserCompanyWarehouseSaveDto} from "./DTO/user-company-warehouse-save.dto";
+import {FindUserByMatriculeDto} from "./DTO/find-user-by-matricule.dto";
 
 @Controller('users')
 export class UsersController {
@@ -83,6 +84,24 @@ export class UsersController {
       );
     }
   }
+
+    @Post('resetuserpwd')
+    resetUserPwd(@Body() userfindDto: FindUserByMatriculeDto) {
+        try {
+            return this.userService.resetUserPwd(userfindDto);
+        } catch (e) {
+            throw new HttpException(
+                {
+                    status: e.status,
+                    error: e.response.error,
+                },
+                e.status,
+                {
+                    cause: e,
+                },
+            );
+        }
+    }
 
   @Post('userscompaniesaffectation')
   saveUserCompany(@Body() userAffectationDto: UserCompanySaveDto) {

@@ -29,6 +29,13 @@ import {MasterdataService} from "../masterdata/masterdata.service";
 import {ItemConversionValidityDto} from "./DTO/item-conversion-validity.dto";
 import {HelpersProvider} from "../../../helpers/providers/helpers.provider";
 import {ClassicConversionValidityDto} from "./DTO/classic-conversion-validity.dto";
+import {ItemsreleasedEntity} from "../../../entities/arazan-db/items/itemsreleased.entity";
+import {VendorReleaseFindDto} from "../masterdata/DTO/vendor-release-find.dto";
+import {VendorReleaseSaveDto} from "../masterdata/DTO/vendor-release-save.dto";
+import {ItemReleaseFindDto} from "./DTO/item-release-find.dto";
+import {ItemReleaseSaveDto} from "./DTO/item-release-save.dto";
+import {ItemsGroupFindDto} from "./DTO/Items-group-find.dto";
+import {ItemsgroupEntity} from "../../../entities/arazan-db/items/itemsgroup.entity";
 
 @Injectable({})
 export class ItemsService {
@@ -37,6 +44,8 @@ export class ItemsService {
         private readonly unitRepository: Repository<UnitsEntity>,
         @InjectRepository(ItemsEntity)
         private readonly itemRepository: Repository<ItemsEntity>,
+        @InjectRepository(ItemsreleasedEntity)
+        private readonly itemsreleasedRepository: Repository<ItemsreleasedEntity>,
         @InjectRepository(PricemodelEntity)
         private readonly pricemodelRepository: Repository<PricemodelEntity>,
         @InjectRepository(UomconversionEntity)
@@ -47,6 +56,8 @@ export class ItemsService {
         private readonly itemclassRepository: Repository<ItemclassEntity>,
         @InjectRepository(ItemtrackingEntity)
         private readonly itemtrackingRepository: Repository<ItemtrackingEntity>,
+        @InjectRepository(ItemsgroupEntity)
+        private readonly itemgroupRepository: Repository<ItemsgroupEntity>,
         private parametreService: ParametresService,
         private categoriesService: CategoriesService,
         private masterdataService: MasterdataService,
@@ -61,11 +72,12 @@ export class ItemsService {
             .save(unit)
             .then(async (res) => {
                 await this.createUomInterneConversion({
-                    actif: res.actif,
+                    actif: true,
                     refunitfrom: res.refunit,
                     refunitto: res.refunit,
                     refcompany: res.refcompany,
-                    coefficient: 1
+                    coefficient: 1,
+                    reforganisation: res.reforganisation,
                 })
                 return await this.unitRepository.findOneBy(unitDto);
             })
@@ -80,6 +92,7 @@ export class ItemsService {
                 where: [
                     {
                         refcompany: unitDto.refcompany,
+                        reforganisation: unitDto.reforganisation,
                         refunit: unitDto?.refunit || undefined,
                         unit: unitDto?.unit || undefined,
                     },
@@ -96,7 +109,11 @@ export class ItemsService {
 
     async showUnit(unitDto: UnitShowDto) {
         return await this.unitRepository
-            .findOneBy({refcompany: unitDto.refcompany, refunit: unitDto.refunit})
+            .findOneBy({
+                refcompany: unitDto.refcompany,
+                refunit: unitDto.refunit,
+                reforganisation: unitDto.reforganisation,
+            })
             .then((res) => {
                 return res;
             })
@@ -171,99 +188,118 @@ export class ItemsService {
 
     // --------------------------------- Item management
     async lookForItem(itemfinddto: ItemsFindDto) {
-        return await this.itemRepository
-            .find({
-                where: [
-                    {refitem: itemfinddto?.refitem || undefined},
-                    //{refcompany: itemfinddto.refcompany},
-                    {item: itemfinddto?.item || undefined},
-                    {searchname: itemfinddto?.searchname || undefined},
-                    {barcode: itemfinddto?.barcode || undefined},
-                    {itemdescription: itemfinddto?.itemdescription || undefined},
-                ],
-                relations: {
-                    //pricemodel: true,
-                    //headerparametre: true,
-                    //unitorder: true,
-                    //unitpurch: true,
-                    //unitsales: true,
-                    //unitinvent: true,
-                    //company: true,
-                },
-                order: {refitem: 'ASC'},
-            })
-            .then(async (res) => {
-                return res;
-            })
-            .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
-            });
-    }
-
-    async findItem(itemfinddto: ItemsFindDto) {
-        const query = await this.itemRepository
-            .createQueryBuilder('item')
+        const itemquery = await this.itemsreleasedRepository
+            .createQueryBuilder('itemsreleased')
+            .innerJoinAndSelect(
+                'itemsreleased.item',
+                'items',
+                'itemsreleased.refcompany = :refcompany and itemsreleased.reforganisation = :reforganisation',
+                {refcompany: itemfinddto.refcompany, reforganisation: itemfinddto.reforganisation}
+            )
             .leftJoinAndSelect(
-                'item.pricemodel',
+                'itemsreleased.pricemodel',
                 'pricemodel',
             )
             .leftJoinAndSelect(
-                'item.headerparametre',
+                'itemsreleased.headerparametre',
                 'headerparametre',
             )
             .leftJoinAndSelect(
-                'item.unitorder',
-                'unit unitorder',
+                'itemsreleased.unitorder',
+                'units unitorder',
             )
             .leftJoinAndSelect(
-                'item.unitpurch',
-                'unit unitpurch',
+                'itemsreleased.unitpurch',
+                'units unitpurch',
             )
             .leftJoinAndSelect(
-                'item.unitsales',
-                'unit unitsales',
+                'itemsreleased.unitsales',
+                'units unitsales',
             )
             .leftJoinAndSelect(
-                'item.unitinvent',
-                'unit unitinvent',
+                'itemsreleased.unitinvent',
+                'units unitinvent',
+            )
+
+            .leftJoinAndSelect(
+                'itemsreleased.itemgroup',
+                'itemsgroup',
             )
             .leftJoinAndSelect(
-                'item.company',
+                'itemsreleased.company',
                 'company',
             )
             .leftJoinAndSelect(
-                'item.itemtracking',
+                'itemsreleased.itemtracking',
                 'itemtracking',
             )
             .leftJoinAndSelect(
-                'item.taxesales',
+                'itemsreleased.taxesales',
                 'taxe taxesales',
             )
             .leftJoinAndSelect(
-                'item.taxepurchase',
+                'itemsreleased.taxepurchase',
                 'taxe taxepurchase',
             )
-            .where('item.refcompany = :refcompany', {refcompany: itemfinddto.refcompany})
-        if (![undefined, null, ''].includes(itemfinddto.refitem)) {
-            query.andWhere('item.refitem = :refitem', {refitem: itemfinddto.refitem})
+
+        if(!['', undefined, null].includes(itemfinddto.refitem)) {
+            itemquery.where('items.refitem = :refitem', { refitem: itemfinddto.refitem })
         }
 
-        return await query.orderBy('item.refitem', 'DESC')
+        return itemquery
             .getMany()
             .then(async (res) => {
                 return res;
             })
             .catch((err) => {
-                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                throw new BadRequestException(err.message, { cause: err, description: err.query,});
             });
     }
 
     async saveItem(itemdto: ItemsSaveDto) {
+        const item = await this.itemRepository.create({
+            refitem: itemdto.refitem,
+            item: itemdto.item,
+            reforganisation: itemdto.reforganisation,
+            barcode: itemdto.barcode,
+            itemdescription: itemdto.itemdescription,
+            searchname: itemdto.searchname,
+        });
+
+        const itemrealese = await this.itemsreleasedRepository.create({
+            refitem: itemdto.refitem,
+            refcompany: itemdto.refcompany,
+            reforganisation: itemdto.reforganisation,
+            alerttime: itemdto.alerttime,
+            bestbeforetime: itemdto.bestbeforetime,
+            expirationdate: itemdto.expirationdate,
+            idheaderparametre: itemdto.idheaderparametre,
+            purchaseprice: itemdto.purchaseprice,
+            purchasepriceunit: itemdto.purchasepriceunit,
+            refitemgroup: itemdto.refitemgroup,
+            refitemtracking: itemdto.refitemtracking,
+            refpricemodel: itemdto.refpricemodel,
+            reftaxepurchase: itemdto.reftaxepurchase,
+            reftaxesales: itemdto.reftaxesales,
+            refunitinvent: itemdto.refunitinvent,
+            refunitorder: itemdto.refunitorder,
+            refunitpurch: itemdto.refunitpurch,
+            refunitsales: itemdto.refunitsales,
+            removaltime: itemdto.removaltime,
+            safetystock: itemdto.safetystock,
+            salesprice: itemdto.salesprice,
+            salespriceunit: itemdto.salespriceunit,
+            stopedinvent: itemdto.stopedinvent,
+            stopedpurch: itemdto.stopedpurch,
+            stopedsales: itemdto.stopedsales,
+        });
+
         //Check conversion unit
         if (![undefined, null, ''].includes(itemdto.refitem) && ![undefined, null, ''].includes(itemdto.refunitinvent) && ![undefined, null, ''].includes(itemdto.refunitpurch)) {
             await this.isItemConversionValid({
                 refitem: itemdto.refitem,
                 refcompany: itemdto.refcompany,
+                reforganisation: itemdto.reforganisation,
                 refunitto: itemdto.refunitpurch,
                 refunitfrom: itemdto.refunitinvent
             })
@@ -273,6 +309,7 @@ export class ItemsService {
             await this.isItemConversionValid({
                 refitem: itemdto.refitem,
                 refcompany: itemdto.refcompany,
+                reforganisation: itemdto.reforganisation,
                 refunitto: itemdto.refunitorder,
                 refunitfrom: itemdto.refunitinvent
             })
@@ -282,29 +319,37 @@ export class ItemsService {
             await this.isItemConversionValid({
                 refitem: itemdto.refitem,
                 refcompany: itemdto.refcompany,
+                reforganisation: itemdto.reforganisation,
                 refunitto: itemdto.refunitsales,
                 refunitfrom: itemdto.refunitinvent
             })
         }
 
-        if (!this.helpersProvider.isEmptyObject(itemdto.parametres)) {
-            const idheaderparametre = -100//await this.parametreService.checkaxesbycompany(itemdto.parametres, itemdto.refcompany, 'ANALYTIC');
-            itemdto['idheaderparametre'] = Number(idheaderparametre);
-        }
-
         if ([undefined, null, ''].includes(itemdto.refitem)) {
-            itemdto.refitem = await this.masterdataService.generatepk('ITM');
+            const refitem = await this.masterdataService.generatepk('ITM');
+            item.refitem = refitem;
+            itemrealese.refitem = refitem;
         }
 
-        const item = await this.itemRepository.create(itemdto);
+        if (!this.helpersProvider.isEmptyObject(itemdto.parametres)) {
+            const idheaderparametre = await this.parametreService.checkaxesbycompany(itemdto.reforganisation, itemdto.parametres, itemdto.refcompany, 'ANALYTIC');
+            itemrealese['idheaderparametre'] = Number(idheaderparametre);
+        }
+
         return await this.itemRepository
             .save(item)
             .then(async (res) => {
-                console.log('------------""""""-------',itemdto.categories)
-                if (!this.helpersProvider.isEmptyObject(itemdto.categories)) {
-                    await this.categoriesService.affectationEntityCategories(itemdto.categories, itemdto.refcompany, itemdto.refitem, 'ITM')
-                }
-                return res;
+                return await this.itemsreleasedRepository
+                    .save(itemrealese)
+                    .then(async (res) => {
+                        if (!this.helpersProvider.isEmptyObject(itemdto.categories)) {
+                            await this.categoriesService.affectationEntityCategories(itemdto.reforganisation, itemdto.categories, itemdto.refcompany, itemdto.refitem, 'ITM')
+                        }
+                        return res;
+                    })
+                    .catch((err) => {
+                        throw new BadRequestException(err.message, {cause: err, description: err.query,});
+                    });
             })
             .catch((err) => {
                 throw new BadRequestException(err.message, {cause: err, description: err.query,});
@@ -313,7 +358,7 @@ export class ItemsService {
 
     // --------------------------------- UOM Conversion Management
     async createUomConversion(uomconversionDto: UomConversionCreateDto) {
-        if(uomconversionDto.refunitto == uomconversionDto.refunitfrom){
+        if((uomconversionDto.refunitto == uomconversionDto.refunitfrom) && uomconversionDto.coefficient !== 1 ){
             const message = 'Unité de conversion identique !';
             throw new BadRequestException(message, {cause: message, description: message,});
         }
@@ -334,14 +379,20 @@ export class ItemsService {
             .createQueryBuilder('uomconversion')
             .innerJoinAndSelect('uomconversion.unitfrom', 'units f')
             .innerJoinAndSelect('uomconversion.unitto', 'units t')
-            .where('uomconversion.refcompany = :refcompany', {refcompany: uomconversionfinddto.refcompany});
+            .where('uomconversion.refcompany = :refcompany and uomconversion.reforganisation = :reforganisation', {
+                refcompany: uomconversionfinddto.refcompany,
+                reforganisation: uomconversionfinddto.reforganisation,
+            })
 
         if(![undefined, null, ''].includes(uomconversionfinddto.refitem)) {
-            await query.andWhere('uomconversion.refitem = :refitem', {refitem: uomconversionfinddto.refitem})
+            await query
+                .andWhere('uomconversion.refitem = :refitem', {refitem: uomconversionfinddto.refitem});
         }
 
-        if(![undefined, null, ''].includes(uomconversionfinddto.id)) {
-            await query.andWhere('uomconversion.id = :id', {id: uomconversionfinddto.id})
+        if(![undefined, null, ''].includes(uomconversionfinddto.refunitto)) {
+            await query
+                .andWhere('uomconversion.refunitfrom = :refunitfrom', {refunitfrom: uomconversionfinddto.refunitfrom})
+                .andWhere('uomconversion.refunitto = :refunitto', {refunitto: uomconversionfinddto.refunitto})
         }
 
         return query
@@ -355,7 +406,7 @@ export class ItemsService {
     }
 
     async createUomInterneConversion(uomconversionDto: UomInterneConversionCreateDto) {
-        if(uomconversionDto.refunitto == uomconversionDto.refunitfrom){
+        if((uomconversionDto.refunitto == uomconversionDto.refunitfrom) && uomconversionDto.coefficient !== 1){
             const message = 'Unité de conversion identique !';
             throw new BadRequestException(message, {cause: message, description: message,});
         }
@@ -395,7 +446,9 @@ export class ItemsService {
 
     //---------------------------------------------> Item Class
     async saveItemClass(itemclassDto: ItemsclassSaveDto) {
+        /**
         let existingItemClass = await this.itemclassRepository.findOneBy({
+            reforganisation: itemclassDto.reforganisation,
             refcompany: itemclassDto.refcompany,
             refwarehouse: itemclassDto.refwarehouse,
             refitem: itemclassDto.refitem
@@ -412,6 +465,8 @@ export class ItemsService {
             existingItemClass['class'] = itemclassDto.class;
         }
         const itemclass = await this.itemclassRepository.create(existingItemClass);
+         **/
+        const itemclass = await this.itemclassRepository.create(itemclassDto);
         return await this.itemclassRepository
             .save(itemclass)
             .then(async (res) => {
@@ -424,9 +479,11 @@ export class ItemsService {
 
     async getItemClass(itemclassDto: ItemsclassFindDto) {
         const query = await this.itemclassRepository.createQueryBuilder('itemclass')
-            .innerJoinAndSelect('itemclass.item', 'items')
+            .innerJoinAndSelect('itemclass.itemrealsed', 'itemsreleased')
             .innerJoinAndSelect('itemclass.warehouse', 'warehouse')
+            .innerJoinAndSelect('itemsreleased.item', 'items')
             .where('itemclass.refcompany = :refcompany', {refcompany: itemclassDto.refcompany})
+            .andWhere('itemclass.reforganisation = :reforganisation', {reforganisation: itemclassDto.reforganisation})
             .andWhere('itemclass.refitem = :refitem', {refitem: itemclassDto.refitem})
 
         if (!['', undefined, null].includes(itemclassDto.refwarehouse)) {
@@ -453,8 +510,24 @@ export class ItemsService {
             });
     }
 
+    async getItemGroup(itemgroup: ItemsGroupFindDto) {
+        return await this.itemgroupRepository
+            .findBy({
+                refitemgroup: itemgroup.refitemgroup || undefined,
+                refcompany: itemgroup.refcompany,
+                reforganisation: itemgroup.reforganisation,
+            })
+            .then(async (res) => {
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
     async isItemValid(itemDto: ItemsValidityDto, controlObject) {
-        return await this.findItem({
+        return await this.lookForItem({
+            reforganisation: itemDto.reforganisation,
             refitem: itemDto.refitem,
             item: undefined,
             refcompany: itemDto.refcompany,
@@ -528,7 +601,6 @@ export class ItemsService {
                 });
                 if ((res + classicCount) <= 0) {
                     message = 'Item conversion ou classic conversion introuvable ' + conversionItemValidityDto.refitem + ' !'
-                    console.log('-------------------->>>',message)
                     throw new BadRequestException(message, {cause: message, description: message,});
                 } else {
                     return (res + classicCount);
@@ -557,7 +629,40 @@ export class ItemsService {
             ]
         })
             .then(async (res) => {
-                console.log('---> res uomclassicconversionRepository', res);
+                return res;
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
+    async getReleasedItemByCompany(itemReleaseFindDto: ItemReleaseFindDto) {
+        const query = await this.itemsreleasedRepository
+            .createQueryBuilder('itemsreleased')
+            .innerJoinAndSelect(
+                'itemsreleased.company',
+                'company',
+                'itemsreleased.refitem = :refitem and itemsreleased.reforganisation = :reforganisation',
+                {refitem: itemReleaseFindDto.refitem, reforganisation: itemReleaseFindDto.reforganisation}
+            );
+        if (itemReleaseFindDto.refcompany) {
+            query.where('itemsreleased.refcompany = :refcompany', {refcompany: itemReleaseFindDto.refcompany});
+        }
+        return query
+            .getMany()
+            .then(async (res) => {
+                return res
+            })
+            .catch((err) => {
+                throw new BadRequestException(err.message, {cause: err, description: err.query,});
+            });
+    }
+
+    async lancerItem(itemDto: ItemReleaseSaveDto) {
+        const itemsrelease = await this.itemsreleasedRepository.create(itemDto)
+        return await this.itemsreleasedRepository
+            .save(itemsrelease)
+            .then(async (res) => {
                 return res;
             })
             .catch((err) => {

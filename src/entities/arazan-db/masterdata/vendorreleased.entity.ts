@@ -3,8 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
+  ManyToOne,
+  OneToMany,
   PrimaryColumn,
   UpdateDateColumn
 } from 'typeorm';
@@ -14,9 +14,9 @@ import { VendorgroupEntity } from "./vendorgroup.entity";
 import { DeliverymodeEntity } from "./deliverymode.entity";
 import { PaymentconditionEntity } from "./paymentcondition.entity";
 import { PaymentmethodEntity } from "./paymentmethod.entity";
-import {TaxeGroupEntity} from "./taxe-group.entity";
-import {CategoriesvendorsEntity} from "../categories/categoriesvendors.entity";
-import {OrganisationEntity} from "../cartography/organisation.entity";
+import { TaxeGroupEntity } from "./taxe-group.entity";
+import { OrganisationEntity } from "../cartography/organisation.entity";
+import {VendorEntity} from "./vendor.entity";
 
 @Entity('vendorreleased')
 export class VendorreleasedEntity {
@@ -44,6 +44,7 @@ export class VendorreleasedEntity {
   @Column({ nullable: true })
   idheaderparametre: number;
 
+  @Column({ nullable: true })
   reftaxegroup: string;
 
   @Column({ default: false })
@@ -67,6 +68,13 @@ export class VendorreleasedEntity {
     { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
   organisation: OrganisationEntity;
+
+  @ManyToOne(() => VendorEntity, (vendorentity) => vendorentity.refvendor, {nullable: false})
+  @JoinColumn([
+    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
+    { name: 'refvendor', referencedColumnName: 'refvendor'},
+  ])
+  vendor: VendorEntity;
 
   @ManyToOne(() => ParametresHeaderEntity, (parametresheaderentity) => parametresheaderentity.idheaderparametre, { nullable: false })
   @JoinColumn([{ name: 'idheaderparametre', referencedColumnName: 'idheaderparametre' }])
@@ -112,12 +120,4 @@ export class VendorreleasedEntity {
     { name: 'reforganisation', referencedColumnName: 'reforganisation'},
   ])
   taxegroup: TaxeGroupEntity;
-
-  @OneToMany(() => CategoriesvendorsEntity, (categoriesvendorsentity) => categoriesvendorsentity.vendorrealsed, { nullable: true })
-  @JoinColumn([
-    { name: 'refvendor', referencedColumnName: 'refvendor' },
-    { name: 'refcompany', referencedColumnName: 'refcompany' },
-    { name: 'reforganisation', referencedColumnName: 'reforganisation'},
-  ])
-  categoriesaffectation: CategoriesvendorsEntity[];
 }

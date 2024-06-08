@@ -10,4 +10,7 @@ export class UnitFindDto {
 
   @IsString()
   readonly refcompany: string;
+
+  @IsString()
+  readonly reforganisation: string;
 }

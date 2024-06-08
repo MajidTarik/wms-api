@@ -2,7 +2,11 @@ import {IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString} from "clas
 import {Abcclass} from "../../../../helpers/abcclass";
 export class VendorSaveDto {
   @IsString()
+  @IsOptional()
   readonly refvendor: string;
+
+  @IsString()
+  readonly reforganisation: string;
 
   @IsString()
   readonly refcompany: string;
@@ -11,42 +15,50 @@ export class VendorSaveDto {
   readonly refvendortype: string;
 
   @IsString()
+  @IsOptional()
   readonly prenom: string;
 
   @IsString()
   readonly nom: string;
 
   @IsString()
+  @IsOptional()
   readonly refvendorgroup: string;
 
   @IsString()
+  @IsOptional()
   readonly ice: string;
 
   @IsString()
+  @IsOptional()
   readonly if: string;
 
   @IsString()
+  @IsOptional()
   readonly rc: string;
 
   @IsString()
+  @IsOptional()
   readonly patente: string;
 
   @IsString()
+  @IsOptional()
   readonly cnss: string;
 
   @IsString()
+  @IsOptional()
   readonly ncin: string;
 
   @IsString()
-  readonly adresse: string;
-
-  @IsString()
+  @IsOptional()
   readonly contactdescription: string;
 
   @IsString()
+  @IsOptional()
   readonly contactmail: string;
 
   @IsString()
+  @IsOptional()
   readonly contacttelephone: string;
 
   @IsString()
@@ -74,10 +86,15 @@ export class VendorSaveDto {
   @IsString()
   readonly reflanguage: string;
 
+  @IsString()
+  @IsOptional()
+  readonly reftaxegroup: string;
+
   @IsOptional()
   @IsNumber()
   idheaderparametre: number;
 
   @IsObject()
+  @IsOptional()
   readonly parametres: object;
 }

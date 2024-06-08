@@ -5,6 +5,9 @@ export class ItemConversionValidityDto {
     readonly refcompany: string;
 
     @IsString()
+    readonly reforganisation: string;
+
+    @IsString()
     readonly refitem: string;
 
     @IsString()

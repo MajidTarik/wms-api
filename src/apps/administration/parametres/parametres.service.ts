@@ -311,7 +311,6 @@ export class ParametresService {
             headerparametrerDto.reftypeparametre,
         )
             .then(async (res) => {
-                console.log('=====================--------------------->>>>>>>>>>>>>>>>>>>>>>>>>>', res)
                 return res;
             })
             .catch((err) => {

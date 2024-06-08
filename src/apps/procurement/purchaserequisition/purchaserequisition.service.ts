@@ -146,7 +146,8 @@ export class PurchaserequisitionService {
                     .getRawMany();
                 await this.masterdataService.isTaxeAffectationCorrect(
                     taxeAffectation ,
-                    purchaserequisitionChangeStatutDto.refcompany
+                    purchaserequisitionChangeStatutDto.refcompany,
+                    purchaserequisitionChangeStatutDto.reforganisation,
                 )
                 purchreq.refpurchaserequisitionstatuts = purchaserequisitionChangeStatutDto.refpurchaserequisitionstatuts;
                 purchreq.dateapprovement = new Date();
@@ -363,12 +364,14 @@ export class PurchaserequisitionService {
         //Validation de vendor.
         await this.masterdataService.isVendorValid({
             refcompany: purchaserequisitionlinesFindDto.refcompany,
+            reforganisation: purchaserequisitionlinesFindDto.reforganisation,
             refvendor: ptline.refvendor
         });
         // Validation d'item
         await this.itemService.isItemValid({
                 refcompany: purchaserequisitionlinesFindDto.refcompany,
-                refitem: ptline.refitem
+                refitem: ptline.refitem,
+                reforganisation: purchaserequisitionlinesFindDto.reforganisation,
             },
             'PURCHORDER'
         );
@@ -419,12 +422,14 @@ export class PurchaserequisitionService {
         //Validation de vendor.
         await this.masterdataService.isVendorValid({
             refcompany: purchaserequisitionlinesFindDto.refcompany,
-            refvendor: ptline.refvendor
+            refvendor: ptline.refvendor,
+            reforganisation: purchaserequisitionlinesFindDto.reforganisation
         });
         // Validation d'item
         await this.itemService.isItemValid({
                 refcompany: purchaserequisitionlinesFindDto.refcompany,
-                refitem: ptline.refitem
+                refitem: ptline.refitem,
+                reforganisation: purchaserequisitionlinesFindDto.reforganisation,
             },
             'PURCHORDER'
         );
@@ -475,12 +480,14 @@ export class PurchaserequisitionService {
         //Validation de vendor.
         await this.masterdataService.isVendorValid({
             refcompany: purchaserequisitionlinesFindDto.refcompany,
-            refvendor: ptline.refvendor
+            refvendor: ptline.refvendor,
+            reforganisation: purchaserequisitionlinesFindDto.reforganisation
         });
         // Validation d'item
         await this.itemService.isItemValid({
                 refcompany: purchaserequisitionlinesFindDto.refcompany,
-                refitem: ptline.refitem
+                refitem: ptline.refitem,
+                reforganisation: purchaserequisitionlinesFindDto.reforganisation,
             },
             'PURCHORDER'
         );
@@ -531,7 +538,8 @@ export class PurchaserequisitionService {
         // Validation d'item
         await this.itemService.isItemValid({
                 refcompany: purchaserequisitionlinesFindDto.refcompany,
-                refitem: ptline.refitem
+                refitem: ptline.refitem,
+                reforganisation: purchaserequisitionlinesFindDto.reforganisation,
             },
             'PURCHORDER'
         );
@@ -571,15 +579,17 @@ export class PurchaserequisitionService {
         // Validation d'item
         await this.itemService.isItemValid({
                 refcompany: purchaserequisitionlinesFindDto.refcompany,
-                refitem: purchaserequisitionlinesFindDto.refitem
+                refitem: purchaserequisitionlinesFindDto.refitem,
+                reforganisation: purchaserequisitionlinesFindDto.reforganisation,
             },
             'PURCHORDER'
         );
 
         // Item vérification
-        const itemEntity = await this.itemService.findItem({
+        const itemEntity = await this.itemService.lookForItem({
             refitem: purchaserequisitionlinesFindDto.refitem,
             refcompany: purchaserequisitionlinesFindDto.refcompany,
+            reforganisation: purchaserequisitionlinesFindDto.reforganisation,
             item: undefined,
             searchname: undefined,
             barcode: undefined,
@@ -657,8 +667,8 @@ export class PurchaserequisitionService {
             },
             Purchaserequisitionstatuts.REVS.toString()
         )
-        await this.masterdataService.isVendorValid({ refcompany: purchaserequisitionlinesFindDto.refcompany, refvendor: purchaserequisitionlinesFindDto.refvendor })
-        const vendor = await this.masterdataService.getVendor({refcompany: purchaserequisitionlinesFindDto.refcompany, refvendor: purchaserequisitionlinesFindDto.refvendor})
+        await this.masterdataService.isVendorValid({ refcompany: purchaserequisitionlinesFindDto.refcompany, refvendor: purchaserequisitionlinesFindDto.refvendor , reforganisation: purchaserequisitionlinesFindDto.reforganisation})
+        const vendor = await this.masterdataService.getVendor({refcompany: purchaserequisitionlinesFindDto.refcompany, refvendor: purchaserequisitionlinesFindDto.refvendor, reforganisation: purchaserequisitionlinesFindDto.reforganisation})
         // Ligne de DA invalid.
         const ptline = await this.findPurchReqLinesIfExist({
             id: purchaserequisitionlinesFindDto.id,
@@ -667,7 +677,7 @@ export class PurchaserequisitionService {
         })
 
         ptline.refvendor = purchaserequisitionlinesFindDto.refvendor;
-        ptline.refcurrency = vendor[0].refcurrency;
+        //ptline.refcurrency = vendor[0].refcurrency;
         //ptline.reftaxegroup = vendor[0].reftaxegroup;
 
         return await this.purchreqlinesRepository
@@ -770,7 +780,8 @@ export class PurchaserequisitionService {
                         alreadytraiteddata.push({refitem: linesPurchReq[i].refitem})
                         await this.itemService.isItemValid({
                             refcompany: linesPurchReq[i].refcompany,
-                            refitem: linesPurchReq[i].refitem
+                            refitem: linesPurchReq[i].refitem,
+                            reforganisation: linesPurchReq[i].reforganisation,
                         }, 'PURCHORDER')
                     }
                 }
@@ -836,18 +847,20 @@ export class PurchaserequisitionService {
         //Validation de vendor.
         await this.masterdataService.isVendorValid({
             refcompany: purchaserequisitionlineDto.refcompany,
+            reforganisation: purchaserequisitionlineDto.reforganisation,
             refvendor: ptline.refvendor
         });
         // Validation d'item
         await this.itemService.isItemValid({
                 refcompany: purchaserequisitionlineDto.refcompany,
-                refitem: ptline.refitem
+                refitem: ptline.refitem,
+                reforganisation: purchaserequisitionlineDto.reforganisation,
             },
             'PURCHORDER'
         );
 
         ptline.reftaxe = purchaserequisitionlineDto.reftaxe;
-        const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlineDto.refcompany, reftaxe: purchaserequisitionlineDto.reftaxe, datedebut: undefined})
+        const taxeline = await this.masterdataService.getCurrentTaxeLineValue({refcompany: purchaserequisitionlineDto.refcompany, reftaxe: purchaserequisitionlineDto.reftaxe, datedebut: undefined, reforganisation: purchaserequisitionlineDto.reforganisation})
         ptline.taxevalue = taxeline[0].percentage;
         ptline.linepricehtvalue = await this.updateLineHtPrice(ptline.price, ptline.discountvalue, ptline.discountpercentage);
         ptline.linepricettcvalue = (ptline.linepricehtvalue * ptline.taxevalue / 100) + ptline.linepricehtvalue;

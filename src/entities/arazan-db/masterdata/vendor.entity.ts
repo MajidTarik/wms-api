@@ -3,15 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne, OneToMany,
-  OneToOne,
+  ManyToOne,
   PrimaryColumn,
   UpdateDateColumn
 } from 'typeorm';
 import { CurrencyEntity } from "./currency.entity";
 import { VendortypeEntity } from "./vendortype.entity";
 import { LanguageEntity } from "./language.entity";
-import {OrganisationEntity} from "../cartography/organisation.entity";
+import { OrganisationEntity } from "../cartography/organisation.entity";
 
 @Entity('vendor')
 export class VendorEntity {
@@ -27,29 +26,26 @@ export class VendorEntity {
   @Column({ nullable: true })
   prenom: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   nom: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   ice: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   if: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   rc: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   patente: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   cnss: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   ncin: string;
-
-  @Column({ nullable: true })
-  adresse: string;
 
   @Column({ nullable: true })
   contactdescription: string;
@@ -60,13 +56,13 @@ export class VendorEntity {
   @Column({ nullable: true })
   contacttelephone: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   refcurrency: string;
 
   @Column({ nullable: true })
   refvendorinvoicing: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   reflanguage: string;
 
   @CreateDateColumn({ type: 'timestamptz' })

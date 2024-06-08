@@ -11,7 +11,6 @@ import {
 import {CompanyEntity} from '../cartography/company.entity';
 import {CategoriesgroupEntity} from "./categoriesgroup.entity";
 import {CategoriesitemsEntity} from "./categoriesitems.entity";
-import {CategoriesvendorsEntity} from "./categoriesvendors.entity";
 import {OrganisationEntity} from "../cartography/organisation.entity";
 
 @Entity('categories')
@@ -85,15 +84,6 @@ export class CategoriesEntity {
         {name: 'reforganisation', referencedColumnName: 'reforganisation'},
     ])
     categoriesitems: CategoriesitemsEntity[];
-
-    @OneToMany(() => CategoriesvendorsEntity, (categoriesvendorsentity) => categoriesvendorsentity.categories)
-    @JoinColumn([
-        {name: 'refcategoriesgroup', referencedColumnName: 'refcategoriesgroup'},
-        {name: 'refcategories', referencedColumnName: 'refcategories'},
-        {name: 'refcompany', referencedColumnName: 'refcompany'},
-        {name: 'reforganisation', referencedColumnName: 'reforganisation'},
-    ])
-    categoriesvendors: CategoriesvendorsEntity[];
 
     @ManyToOne(() => CategoriesgroupEntity, (categoriesgroupentity) => categoriesgroupentity.categories, {nullable: false})
     @JoinColumn([

@@ -123,7 +123,6 @@ export class WhCartographyController {
   @Post('createsitegeographic')
   async createSitegeographic(@Body() sitegeographicDto: SitegeographicCreateDto) {
     try {
-      console.log('=-=-=-=-=-=-===>>>>',sitegeographicDto)
       return await this.whcartographyService.createSitegeographic(sitegeographicDto);
     } catch (e) {
       throw new HttpException(
@@ -489,7 +488,6 @@ export class WhCartographyController {
   @Post('getaddressbycontrolobject')
   async getAddressByControlObject(@Body() addressaffectedfindDto: AddressAffectedFindDto) {
     try {
-        console.log('',addressaffectedfindDto)
       return await this.whcartographyService.getAddressByControlObject(addressaffectedfindDto);
     } catch (e) {
       throw new HttpException(
